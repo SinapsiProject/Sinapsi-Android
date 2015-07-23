@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="yes">Yep</string>
+    <string name="no">Nope</string>
+
+    <string name="app_name">Sinapsi</string>
+    <string name="title_activity_macro_manager">Sinapsi</string>
+    <string name="hello_world">Hello world!</string>
+    <string name="action_settings">Settings</string>
+    <string name="ok">OK</string>
+
+    <string name="text_no_macros">There are no macros yet.\nTouch + to create a new one.</string>
+    <string name="text_connection_problems">Connection error</string>
+    <string name="text_new_to_sinapsi">New to Sinapsi? Sign Up</string>
+    <string name="text_sign_in">Sign In</string>
+    <string name="description_more">More options</string>
+    <string name="macro_manager_fragment_title">Macros</string>
+    <string name="about_fragment_title">About</string>
+    <string name="drawer_open">Open navigation drawer</string>
+    <string name="drawer_close">Close navigation drawer</string>
+    <string name="are_you_sure_delete_macro">Are you sure you want to delete macro \'%s\'?</string>
+    <string name="delete">Delete</string>
+    <string name="title_activity_editor">Macro Editor </string>
+    <string name="username_does_not_exist">This username does not exist or is not active</string>
+    <string name="log_out">Log out</string>
+    <string name="are_you_sure_log_out">Are you sure you want to log out?</string>
+    <string name="macro_uppercase_text">MACRO</string>
+    <string name="macro_editor_macro_name">Name:</string>
+    <string name="macro_name_hint"><![CDATA[< Macro name >]]></string>
+    <string name="trigger_uppercase_text">TRIGGER</string>
+    <string name="actions_uppercase_text">ACTIONS</string>
+    <string name="select_trigger_text">Select trigger</string>
+    <string name="trigger_empty_raw_text">TRIGGER_EMPTY</string>
+    <string name="action_editor_example_text">ACTION X</string>
+    <string name="drag_to_sort_action">Long press and drag to sort</string>
+    <string name="delete_action_text">Delete action</string>
+    <string name="parameters_label_text">PARAMETERS:</string>
+
+    <string name="title_section1">Section 1</string>
+    <string name="title_section2">Section 2</string>
+    <string name="title_section3">Section 3</string>
+    <string name="action_done">Done</string>
+    <string name="title_section_trigger">TRIGGER</string>
+    <string name="title_section_actions">ACTIONS</string>
+    <string name="parameter_typelabel"> - Type:</string>
+    <string name="developers">Marco Grillo\nAyoub Ouarrak\nGiuseppe Petrosino</string>
+
+</resources>

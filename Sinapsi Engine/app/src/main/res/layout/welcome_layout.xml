@@ -1,0 +1,57 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="#ECEDF2"
+    android:id="@+id/welcome_layout"
+    android:gravity="center">
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:gravity="center_horizontal"
+        android:id="@+id/logo"
+        android:layout_marginBottom="50dp">
+
+        <ImageView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:src="@drawable/ic_launcher"
+
+             />
+
+        <TextView android:layout_height="wrap_content"
+            android:layout_width="wrap_content"
+            android:text="@string/app_name"
+            android:id = "@+id/logo_label"
+            android:textSize="50sp"/>
+
+
+    </LinearLayout>
+
+
+    <TextView
+        android:id="@+id/signUp_text"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/text_new_to_sinapsi"
+        android:gravity="center"
+        android:textSize="25sp"
+        android:clickable="true"
+        android:background="#ECEDF2"
+        android:textColor="#ff20647f" />
+
+    <TextView
+        android:id="@+id/signIn_text"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/text_sign_in"
+        android:gravity="center"
+        android:textSize="25sp"
+        android:clickable="true"
+        android:layout_marginTop="40dp"
+        android:background="#ECEDF2"
+        android:textColor="#ff797272" />
+</LinearLayout>

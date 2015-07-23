@@ -1,0 +1,9 @@
+<component name="libraryTable">
+  <library name="JWSocket">
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/app/libs/JWSocket.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>

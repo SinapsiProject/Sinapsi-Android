@@ -12,6 +12,9 @@ android {
         versionCode 1
         versionName "1.0"
     }
+    sourceSets {
+        main.java.srcDirs += '../../../Sinapsi-Core'
+    }
     buildTypes {
         release {
             minifyEnabled false
@@ -37,3 +40,5 @@ dependencies {
     compile 'com.getbase:floatingactionbutton:1.8.0'
     compile 'com.daimajia.swipelayout:library:1.1.8@aar'
 }
+
+

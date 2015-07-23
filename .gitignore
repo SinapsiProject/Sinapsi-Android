@@ -46,3 +46,5 @@ Sinapsi Engine/app/app.iml
 Sinapsi Engine/build/intermediates/gradle_project_sync_data.bin
 
 Sinapsi Engine/Sinapsi Engine.iml
+
+Sinapsi Engine/build/intermediates/dex-cache/cache.xml

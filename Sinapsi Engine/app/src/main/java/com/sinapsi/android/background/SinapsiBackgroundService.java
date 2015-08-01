@@ -21,6 +21,7 @@ import com.sinapsi.android.AndroidAppConsts;
 import com.sinapsi.android.SinapsiAndroidApplication;
 import com.sinapsi.android.enginesystem.ToastAdapter;
 import com.sinapsi.android.enginesystem.components.ActionToast;
+import com.sinapsi.android.enginesystem.components.DefaultAndroidModules;
 import com.sinapsi.android.persistence.AndroidDiffDBManager;
 import com.sinapsi.android.persistence.AndroidLocalDBManager;
 import com.sinapsi.android.utils.DialogUtils;
@@ -36,6 +37,7 @@ import com.sinapsi.client.SyncManager;
 import com.sinapsi.client.persistence.InconsistentMacroChangeException;
 import com.sinapsi.client.persistence.UserSettingsFacade;
 import com.sinapsi.client.persistence.syncmodel.MacroSyncConflict;
+import com.sinapsi.engine.DefaultCoreModules;
 import com.sinapsi.utils.Triplet;
 import com.sinapsi.webshared.ComponentFactoryProvider;
 import com.sinapsi.client.web.OnlineStatusProvider;
@@ -51,18 +53,18 @@ import com.sinapsi.engine.ComponentFactory;
 import com.sinapsi.engine.MacroEngine;
 import com.sinapsi.android.R;
 import com.sinapsi.engine.VariableManager;
-import com.sinapsi.engine.components.ActionContinueConfirmDialog;
-import com.sinapsi.engine.components.ActionLog;
-import com.sinapsi.engine.components.ActionSendSMS;
-import com.sinapsi.engine.components.ActionSetVariable;
-import com.sinapsi.engine.components.ActionSimpleNotification;
-import com.sinapsi.engine.components.ActionStringInputDialog;
-import com.sinapsi.engine.components.ActionWifiState;
-import com.sinapsi.engine.components.TriggerACPower;
-import com.sinapsi.engine.components.TriggerEngineStart;
-import com.sinapsi.engine.components.TriggerSMS;
-import com.sinapsi.engine.components.TriggerScreenPower;
-import com.sinapsi.engine.components.TriggerWifi;
+import com.sinapsi.engine.components.common.ActionContinueConfirmDialog;
+import com.sinapsi.engine.components.core.ActionLog;
+import com.sinapsi.engine.components.common.ActionSendSMS;
+import com.sinapsi.engine.components.core.ActionSetVariable;
+import com.sinapsi.engine.components.common.ActionSimpleNotification;
+import com.sinapsi.engine.components.common.ActionStringInputDialog;
+import com.sinapsi.engine.components.common.ActionWifiState;
+import com.sinapsi.engine.components.common.TriggerACPower;
+import com.sinapsi.engine.components.core.TriggerEngineStart;
+import com.sinapsi.engine.components.common.TriggerSMS;
+import com.sinapsi.engine.components.common.TriggerScreenPower;
+import com.sinapsi.engine.components.common.TriggerWifi;
 import com.sinapsi.engine.execution.ExecutionInterface;
 import com.sinapsi.engine.execution.RemoteExecutionDescriptor;
 import com.sinapsi.engine.execution.WebExecutionInterface;
@@ -193,7 +195,7 @@ public class SinapsiBackgroundService extends Service
 
         // here starts engine initialization    ---------------------
         SystemFacade sf = createAndroidSystemFacade();
-        VariableManager globalVarables = new VariableManager();
+        VariableManager globalVariables = new VariableManager();
 
 
         engine = new MacroEngine(
@@ -203,25 +205,14 @@ public class SinapsiBackgroundService extends Service
                                 sf,
                                 device,
                                 defaultWebExecutionInterface,
-                                globalVarables,
+                                globalVariables,
                                 sinapsiLog),
                         this,
                         sf),
                 sinapsiLog,
-                TriggerSMS.class,
-                TriggerWifi.class,
-                TriggerEngineStart.class,
-                TriggerScreenPower.class,
-                TriggerACPower.class,
-
-                ActionWifiState.class,
-                ActionSendSMS.class,
-                ActionSetVariable.class,
-                ActionContinueConfirmDialog.class,
-                ActionLog.class,
-                ActionSimpleNotification.class,
-                ActionStringInputDialog.class,
-                ActionToast.class);
+                DefaultCoreModules.ANTARES_CORE_MODULE,
+                DefaultCoreModules.ANTARES_COMMON_MODULE,
+                DefaultAndroidModules.ANTARES_ANDROID_MODULE);
         // here ends engine initialization      ---------------------
 
         // sync manager initialization ------------------------------
@@ -295,7 +286,7 @@ public class SinapsiBackgroundService extends Service
     private SystemFacade createAndroidSystemFacade() {
         SystemFacade sf = new SystemFacade();
 
-        sf.addSystemService(DialogAdapter.SERVICE_DIALOGS, new AndroidDialogAdapter(this));
+        sf.addSystemService(DialogAdapter.SERVICE_DIALOGS, new AndroidDialogAdapter(this));//TODO: include adapters in modules
         sf.addSystemService(SMSAdapter.SERVICE_SMS, new AndroidSMSAdapter(this));
         sf.addSystemService(WifiAdapter.SERVICE_WIFI, new AndroidWifiAdapter(this));
         sf.addSystemService(NotificationAdapter.SERVICE_NOTIFICATION, new AndroidNotificationAdapter(getApplicationContext()));

@@ -5,6 +5,7 @@ import com.sinapsi.engine.Action;
 import com.sinapsi.engine.SinapsiVersions;
 import com.sinapsi.engine.execution.ExecutionInterface;
 import com.sinapsi.engine.parameters.FormalParamBuilder;
+import com.sinapsi.model.module.SinapsiModuleDescriptor;
 import com.sinapsi.utils.HashMapBuilder;
 
 import org.json.JSONException;
@@ -48,5 +49,10 @@ public class ActionToast extends Action {
         return new HashMapBuilder<String, Integer>()
                 .put(ToastAdapter.REQUIREMENT_TOAST, 1)
                 .create();
+    }
+
+    @Override
+    public SinapsiModuleDescriptor getBelongingSinapsiModule() {
+        return DefaultAndroidModules.ANTARES_ANDROID_MODULE;
     }
 }

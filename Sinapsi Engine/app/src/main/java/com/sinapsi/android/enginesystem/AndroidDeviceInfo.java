@@ -4,6 +4,7 @@ import android.content.Context;
 import android.os.Build;
 
 import com.sinapsi.android.AndroidAppConsts;
+import com.sinapsi.engine.SinapsiPlatforms;
 import com.sinapsi.engine.system.DeviceInfoAdapter;
 
 /**
@@ -53,6 +54,6 @@ public class AndroidDeviceInfo implements DeviceInfoAdapter {
      */
     @Override
     public String getDeviceType() {
-        return "Android";
+        return SinapsiPlatforms.PLATFORM_ANDROID;
     }
 }

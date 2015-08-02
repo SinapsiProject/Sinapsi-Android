@@ -5,9 +5,11 @@ import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.net.wifi.WifiManager;
 
+import com.sinapsi.android.enginesystem.components.DefaultAndroidModules;
 import com.sinapsi.engine.system.WifiAdapter;
 import com.sinapsi.engine.parameters.ConnectionStatusChoices;
 import com.sinapsi.engine.parameters.SwitchStatusChoices;
+import com.sinapsi.model.module.SinapsiModuleDescriptor;
 
 /**
  * WifiAdapter implementation for Android.
@@ -75,5 +77,10 @@ public class AndroidWifiAdapter implements WifiAdapter{
         }else{
             wm.disconnect();
         }
+    }
+
+    @Override
+    public SinapsiModuleDescriptor getBelongingSinapsiModule() {
+        return DefaultAndroidModules.ANTARES_ANDROID_COMMONS_MODULE;
     }
 }

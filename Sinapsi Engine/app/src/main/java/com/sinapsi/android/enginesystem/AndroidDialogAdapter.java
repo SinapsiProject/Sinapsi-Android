@@ -8,7 +8,9 @@ import android.view.WindowManager;
 import android.widget.EditText;
 
 import com.sinapsi.android.R;
+import com.sinapsi.android.enginesystem.components.DefaultAndroidModules;
 import com.sinapsi.engine.system.DialogAdapter;
+import com.sinapsi.model.module.SinapsiModuleDescriptor;
 
 /**
  * DialogAdapter implementation for Android.
@@ -71,5 +73,10 @@ public class AndroidDialogAdapter implements DialogAdapter {
         AlertDialog alertDialog = builder.create();
         alertDialog.getWindow().setType(WindowManager.LayoutParams.TYPE_SYSTEM_ALERT);
         alertDialog.show();
+    }
+
+    @Override
+    public SinapsiModuleDescriptor getBelongingSinapsiModule() {
+        return DefaultAndroidModules.ANTARES_ANDROID_COMMONS_MODULE;
     }
 }

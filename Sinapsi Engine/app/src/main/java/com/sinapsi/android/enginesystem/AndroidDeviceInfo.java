@@ -4,8 +4,10 @@ import android.content.Context;
 import android.os.Build;
 
 import com.sinapsi.android.AndroidAppConsts;
+import com.sinapsi.android.enginesystem.components.DefaultAndroidModules;
 import com.sinapsi.engine.SinapsiPlatforms;
 import com.sinapsi.engine.system.DeviceInfoAdapter;
+import com.sinapsi.model.module.SinapsiModuleDescriptor;
 
 /**
  * Android dependent class, give model and name of the current device
@@ -55,5 +57,10 @@ public class AndroidDeviceInfo implements DeviceInfoAdapter {
     @Override
     public String getDeviceType() {
         return SinapsiPlatforms.PLATFORM_ANDROID;
+    }
+
+    @Override
+    public SinapsiModuleDescriptor getBelongingSinapsiModule() {
+        return DefaultAndroidModules.ANTARES_ANDROID_MODULE;
     }
 }

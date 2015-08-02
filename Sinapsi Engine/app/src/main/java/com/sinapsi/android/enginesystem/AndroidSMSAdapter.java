@@ -6,7 +6,9 @@ import android.database.Cursor;
 import android.net.Uri;
 import android.telephony.SmsManager;
 
+import com.sinapsi.android.enginesystem.components.DefaultAndroidModules;
 import com.sinapsi.engine.system.SMSAdapter;
+import com.sinapsi.model.module.SinapsiModuleDescriptor;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -73,5 +75,10 @@ public class AndroidSMSAdapter implements SMSAdapter {
         c.close();
 
         return lstSms;
+    }
+
+    @Override
+    public SinapsiModuleDescriptor getBelongingSinapsiModule() {
+        return DefaultAndroidModules.ANTARES_ANDROID_COMMONS_MODULE;
     }
 }

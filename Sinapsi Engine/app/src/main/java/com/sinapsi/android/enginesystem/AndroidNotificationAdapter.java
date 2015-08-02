@@ -6,7 +6,9 @@ import android.content.Context;
 import android.support.v4.app.NotificationCompat;
 
 import com.sinapsi.android.R;
+import com.sinapsi.android.enginesystem.components.DefaultAndroidModules;
 import com.sinapsi.engine.system.NotificationAdapter;
+import com.sinapsi.model.module.SinapsiModuleDescriptor;
 
 /**
  * NotificationAdapter - implementation for Android platform
@@ -30,5 +32,10 @@ public class AndroidNotificationAdapter implements NotificationAdapter {
                 .setAutoCancel(true).build();
         NotificationManager notificationManager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
         notificationManager.notify(0, n);
+    }
+
+    @Override
+    public SinapsiModuleDescriptor getBelongingSinapsiModule() {
+        return DefaultAndroidModules.ANTARES_ANDROID_COMMONS_MODULE;
     }
 }

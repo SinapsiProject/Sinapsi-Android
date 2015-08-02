@@ -20,7 +20,6 @@ import com.google.gson.Gson;
 import com.sinapsi.android.AndroidAppConsts;
 import com.sinapsi.android.SinapsiAndroidApplication;
 import com.sinapsi.android.enginesystem.ToastAdapter;
-import com.sinapsi.android.enginesystem.components.ActionToast;
 import com.sinapsi.android.enginesystem.components.DefaultAndroidModules;
 import com.sinapsi.android.persistence.AndroidDiffDBManager;
 import com.sinapsi.android.persistence.AndroidLocalDBManager;
@@ -55,14 +54,9 @@ import com.sinapsi.android.R;
 import com.sinapsi.engine.VariableManager;
 import com.sinapsi.engine.components.common.ActionContinueConfirmDialog;
 import com.sinapsi.engine.components.core.ActionLog;
-import com.sinapsi.engine.components.common.ActionSendSMS;
 import com.sinapsi.engine.components.core.ActionSetVariable;
 import com.sinapsi.engine.components.common.ActionSimpleNotification;
-import com.sinapsi.engine.components.common.ActionStringInputDialog;
 import com.sinapsi.engine.components.common.ActionWifiState;
-import com.sinapsi.engine.components.common.TriggerACPower;
-import com.sinapsi.engine.components.core.TriggerEngineStart;
-import com.sinapsi.engine.components.common.TriggerSMS;
 import com.sinapsi.engine.components.common.TriggerScreenPower;
 import com.sinapsi.engine.components.common.TriggerWifi;
 import com.sinapsi.engine.execution.ExecutionInterface;
@@ -211,7 +205,7 @@ public class SinapsiBackgroundService extends Service
                         sf),
                 sinapsiLog,
                 DefaultCoreModules.ANTARES_CORE_MODULE,
-                DefaultCoreModules.ANTARES_COMMON_MODULE,
+                DefaultCoreModules.ANTARES_COMMONS_MODULE,
                 DefaultAndroidModules.ANTARES_ANDROID_MODULE);
         // here ends engine initialization      ---------------------
 
@@ -286,7 +280,7 @@ public class SinapsiBackgroundService extends Service
     private SystemFacade createAndroidSystemFacade() {
         SystemFacade sf = new SystemFacade();
 
-        sf.addSystemService(DialogAdapter.SERVICE_DIALOGS, new AndroidDialogAdapter(this));//TODO: include adapters in modules
+        sf.addSystemService(DialogAdapter.SERVICE_DIALOGS, new AndroidDialogAdapter(this));//TODO: load adapters from modules
         sf.addSystemService(SMSAdapter.SERVICE_SMS, new AndroidSMSAdapter(this));
         sf.addSystemService(WifiAdapter.SERVICE_WIFI, new AndroidWifiAdapter(this));
         sf.addSystemService(NotificationAdapter.SERVICE_NOTIFICATION, new AndroidNotificationAdapter(getApplicationContext()));

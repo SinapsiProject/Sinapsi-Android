@@ -8,7 +8,6 @@ import com.sinapsi.android.enginesystem.components.DefaultAndroidModules;
 import com.sinapsi.engine.PlatformDependantObjectProvider;
 import com.sinapsi.engine.SinapsiPlatforms;
 import com.sinapsi.engine.system.DeviceInfoAdapter;
-import com.sinapsi.engine.system.DialogAdapter;
 import com.sinapsi.engine.system.annotations.AdapterImplementation;
 import com.sinapsi.engine.system.annotations.InitializationNeededObjects;
 import com.sinapsi.model.module.SinapsiModuleDescriptor;
@@ -16,7 +15,7 @@ import com.sinapsi.model.module.SinapsiModuleDescriptor;
 /**
  * Android dependent class, give model and name of the current device
  */
-@AdapterImplementation(DeviceInfoAdapter.SERVICE_DEVICE_INFO)
+@AdapterImplementation(DeviceInfoAdapter.ADAPTER_DEVICE_INFO)
 @InitializationNeededObjects(
         PlatformDependantObjectProvider.ObjectKey.ANDROID_APPLICATION_CONTEXT
 )

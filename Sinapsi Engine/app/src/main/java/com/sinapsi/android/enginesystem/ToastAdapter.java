@@ -5,7 +5,7 @@ import android.widget.Toast;
 
 import com.sinapsi.android.enginesystem.components.DefaultAndroidModules;
 import com.sinapsi.engine.PlatformDependantObjectProvider;
-import com.sinapsi.engine.system.ComponentSystemAdapter;
+import com.sinapsi.engine.ComponentSystemAdapter;
 import com.sinapsi.engine.system.annotations.AdapterImplementation;
 import com.sinapsi.engine.system.annotations.InitializationNeededObjects;
 import com.sinapsi.model.module.SinapsiModuleDescriptor;

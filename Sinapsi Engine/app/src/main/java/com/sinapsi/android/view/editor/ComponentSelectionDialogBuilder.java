@@ -115,7 +115,7 @@ public class ComponentSelectionDialogBuilder {
                     if(array.get(position).getDeviceId() == currentDeviceId){
                         label.setText(device.getModel() + " (this device)");
                     }else{
-                        label.setText(device.getModel() + " ("+ device.getType()+")");
+                        label.setText(device.getModel() + " ("+ device.getPlatformType()+")");
                     }
                 }
                     break;

@@ -17,7 +17,7 @@ import org.json.JSONObject;
  */
 @Component(ActionToast.ACTION_TOAST)
 @Requires({
-        @Requirement(name = ToastAdapter.REQUIREMENT_TOAST, value =1)
+        @Requirement(name = DefaultAndroidModules.REQUIREMENT_TOAST, value =1)
 })
 public class ActionToast extends Action {
 

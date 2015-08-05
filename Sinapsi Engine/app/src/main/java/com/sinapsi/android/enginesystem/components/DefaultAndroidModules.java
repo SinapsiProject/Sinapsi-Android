@@ -1,5 +1,8 @@
 package com.sinapsi.android.enginesystem.components;
 
+import android.content.Context;
+import android.content.pm.PackageManager;
+
 import com.sinapsi.android.enginesystem.AndroidDeviceInfo;
 import com.sinapsi.android.enginesystem.AndroidDialogAdapter;
 import com.sinapsi.android.enginesystem.AndroidNotificationAdapter;
@@ -7,8 +10,11 @@ import com.sinapsi.android.enginesystem.AndroidSMSAdapter;
 import com.sinapsi.android.enginesystem.AndroidWifiAdapter;
 import com.sinapsi.android.enginesystem.ToastAdapter;
 import com.sinapsi.engine.DefaultCoreModules;
+import com.sinapsi.engine.PlatformDependantObjectProvider;
+import com.sinapsi.engine.RequirementResolver;
 import com.sinapsi.engine.SinapsiPlatforms;
 import com.sinapsi.engine.SinapsiVersions;
+import com.sinapsi.engine.system.SystemFacade;
 import com.sinapsi.model.impl.FactoryModel;
 import com.sinapsi.model.module.SinapsiModule;
 
@@ -19,7 +25,8 @@ public class DefaultAndroidModules {
 
 
     public static final String ANTARES_ANDROID_PACKAGE_NAME = "ANTARES_ANDROID_MODULE";
-    public static final String ANTARES_ANDROID_COMMONS_PACKAGE_NAME = "ANTARES_ANDROID_COMMONS_MODULE";
+
+    public static final String REQUIREMENT_TOAST = "REQUIREMENT_TOAST";
 
     public static final SinapsiModule ANTARES_ANDROID_MODULE = new FactoryModel().newModule(
             SinapsiVersions.ANTARES.ordinal(),
@@ -27,6 +34,22 @@ public class DefaultAndroidModules {
             ANTARES_ANDROID_PACKAGE_NAME,
             DefaultCoreModules.SINAPSI_TEAM_DEVELOPER_ID,
             SinapsiPlatforms.PLATFORM_ANDROID,
+            new RequirementResolver() {
+                @Override
+                public PlatformDependantObjectProvider.ObjectKey[] getPlatformDependantObjectsKeys() {
+                    return null;
+                }
+
+                @Override
+                public void setPlatformDependantObjects(Object... objects) {
+                    //does nothing
+                }
+
+                @Override
+                public void resolveRequirements(SystemFacade sf) {
+                    sf.setRequirementSpec(REQUIREMENT_TOAST, true);
+                }
+            },
 
             ActionToast.class,
 
@@ -35,12 +58,46 @@ public class DefaultAndroidModules {
             AndroidDeviceInfo.class
     );
 
+    public static final String ANTARES_ANDROID_COMMONS_PACKAGE_NAME = "ANTARES_ANDROID_COMMONS_MODULE";
+
     public static final SinapsiModule ANTARES_ANDROID_COMMONS_MODULE = new FactoryModel().newModule(
             SinapsiVersions.ANTARES.ordinal(),
             SinapsiVersions.ANTARES.ordinal(),
             ANTARES_ANDROID_COMMONS_PACKAGE_NAME,
             DefaultCoreModules.SINAPSI_TEAM_DEVELOPER_ID,
             SinapsiPlatforms.PLATFORM_ANDROID,
+            new RequirementResolver() {
+
+                private Context c;
+
+                @Override
+                public PlatformDependantObjectProvider.ObjectKey[] getPlatformDependantObjectsKeys() {
+                    return new PlatformDependantObjectProvider.ObjectKey[]{
+                            PlatformDependantObjectProvider.ObjectKey.ANDROID_SERVICE_CONTEXT
+                    };
+                }
+
+                @Override
+                public void setPlatformDependantObjects(Object... objects) {
+                    c = (Context)objects[0];
+
+                }
+
+                @Override
+                public void resolveRequirements(SystemFacade sf) {
+                    PackageManager pm = c.getPackageManager();
+
+                    sf.setRequirementSpec(DefaultCoreModules.REQUIREMENT_WIFI, pm.hasSystemFeature(PackageManager.FEATURE_WIFI));
+                    sf.setRequirementSpec(DefaultCoreModules.REQUIREMENT_SMS_READ, pm.hasSystemFeature(PackageManager.FEATURE_TELEPHONY));
+
+                    sf.setRequirementSpec(DefaultCoreModules.REQUIREMENT_SIMPLE_DIALOGS, true);
+                    sf.setRequirementSpec(DefaultCoreModules.REQUIREMENT_SIMPLE_NOTIFICATIONS, true);
+                    sf.setRequirementSpec(DefaultCoreModules.REQUIREMENT_INTERCEPT_SCREEN_POWER, true);
+                    sf.setRequirementSpec(DefaultCoreModules.REQUIREMENT_AC_CHARGER, true);
+                    sf.setRequirementSpec(DefaultCoreModules.REQUIREMENT_INPUT_DIALOGS, true);
+                }
+            },
+
 
             AndroidDialogAdapter.class,
             AndroidNotificationAdapter.class,

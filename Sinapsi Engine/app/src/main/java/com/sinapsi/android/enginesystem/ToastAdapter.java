@@ -19,7 +19,6 @@ import com.sinapsi.model.module.SinapsiModuleDescriptor;
 )
 public class ToastAdapter implements ComponentSystemAdapter{
     public static final String ADAPTER_TOAST = "ADAPTER_TOAST";
-    public static final String REQUIREMENT_TOAST = "REQUIREMENT_TOAST";
 
     private Context context;
 

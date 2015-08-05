@@ -367,7 +367,7 @@ public class EditorActivity extends SinapsiActionBarActivity implements ActionBa
             if (deviceId == currentDeviceId) {
                 result += " (this device)";
             } else {
-                result += " (" + t.getDevice().getType() + ")";
+                result += " (" + t.getDevice().getPlatformType() + ")";
             }
         }
         return result;

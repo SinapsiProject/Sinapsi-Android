@@ -5,7 +5,6 @@ import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
-import android.content.pm.PackageManager;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.Binder;
@@ -19,7 +18,6 @@ import android.util.Log;
 import com.google.gson.Gson;
 import com.sinapsi.android.AndroidAppConsts;
 import com.sinapsi.android.SinapsiAndroidApplication;
-import com.sinapsi.android.enginesystem.ToastAdapter;
 import com.sinapsi.android.enginesystem.components.DefaultAndroidModules;
 import com.sinapsi.android.persistence.AndroidDiffDBManager;
 import com.sinapsi.android.persistence.AndroidLocalDBManager;
@@ -30,24 +28,19 @@ import com.sinapsi.android.web.AndroidBase64EncodingMethod;
 import com.sinapsi.client.AppConsts;
 import com.sinapsi.android.Lol;
 import com.sinapsi.android.persistence.AndroidUserSettingsFacade;
-import com.sinapsi.android.enginesystem.AndroidNotificationAdapter;
 import com.sinapsi.client.SafeSyncManager;
 import com.sinapsi.client.SyncManager;
 import com.sinapsi.client.persistence.InconsistentMacroChangeException;
 import com.sinapsi.client.persistence.UserSettingsFacade;
 import com.sinapsi.client.persistence.syncmodel.MacroSyncConflict;
 import com.sinapsi.engine.DefaultCoreModules;
+import com.sinapsi.engine.DefaultRequirementResolver;
 import com.sinapsi.engine.PlatformDependantObjectProvider;
-import com.sinapsi.engine.RequirementResolver;
-import com.sinapsi.engine.SystemFacadeGenerator;
 import com.sinapsi.utils.Triplet;
 import com.sinapsi.webshared.ComponentFactoryProvider;
 import com.sinapsi.client.web.OnlineStatusProvider;
 import com.sinapsi.client.web.RetrofitWebServiceFacade;
 import com.sinapsi.android.enginesystem.AndroidActivationManager;
-import com.sinapsi.android.enginesystem.AndroidDialogAdapter;
-import com.sinapsi.android.enginesystem.AndroidSMSAdapter;
-import com.sinapsi.android.enginesystem.AndroidWifiAdapter;
 import com.sinapsi.client.web.SinapsiWebServiceFacade;
 import com.sinapsi.client.web.UserLoginStatusListener;
 import com.sinapsi.client.websocket.WSClient;
@@ -69,12 +62,7 @@ import com.sinapsi.engine.log.LogMessage;
 import com.sinapsi.engine.log.SinapsiLog;
 import com.sinapsi.engine.log.SystemLogInterface;
 import com.sinapsi.engine.parameters.ConnectionStatusChoices;
-import com.sinapsi.engine.system.CommonDeviceConsts;
-import com.sinapsi.engine.system.DialogAdapter;
-import com.sinapsi.engine.system.NotificationAdapter;
-import com.sinapsi.engine.system.SMSAdapter;
 import com.sinapsi.engine.system.SystemFacade;
-import com.sinapsi.engine.system.WifiAdapter;
 import com.sinapsi.model.DeviceInterface;
 import com.sinapsi.model.MacroInterface;
 import com.sinapsi.model.UserInterface;
@@ -196,21 +184,10 @@ public class SinapsiBackgroundService extends Service
                 device,
                 new AndroidActivationManager(this),
                 defaultWebExecutionInterface,
-                new RequirementResolver() {
+                new DefaultRequirementResolver() {
                     @Override
                     public void resolveRequirements(SystemFacade sf) {
-                        PackageManager pm = getPackageManager();
-
-                        sf.setRequirementSpec(DialogAdapter.REQUIREMENT_SIMPLE_DIALOGS, true);
-                        sf.setRequirementSpec(NotificationAdapter.REQUIREMENT_SIMPLE_NOTIFICATIONS, true);
-                        sf.setRequirementSpec(CommonDeviceConsts.REQUIREMENT_INTERCEPT_SCREEN_POWER, true);
-                        sf.setRequirementSpec(CommonDeviceConsts.REQUIREMENT_AC_CHARGER, true);
-                        sf.setRequirementSpec(DialogAdapter.REQUIREMENT_INPUT_DIALOGS, true);
-
-                        sf.setRequirementSpec(WifiAdapter.REQUIREMENT_WIFI, pm.hasSystemFeature(PackageManager.FEATURE_WIFI));
-                        sf.setRequirementSpec(SMSAdapter.REQUIREMENT_SMS_READ, pm.hasSystemFeature(PackageManager.FEATURE_TELEPHONY));
-
-                        sf.setRequirementSpec(ToastAdapter.REQUIREMENT_TOAST, true);
+                        sf.setRequirementSpec(DefaultCoreModules.REQUIREMENT_RESTARTABLE_MACRO_ENGINE, true);
                     }
                 },
                 new PlatformDependantObjectProvider() {
@@ -299,22 +276,6 @@ public class SinapsiBackgroundService extends Service
     private void loadSettings(UserSettingsFacade settings) {
         //TODO: impl
     }
-
-    /*
-    private SystemFacade createAndroidSystemFacade() {
-        SystemFacade sf = new SystemFacade();
-
-        sf.addSystemService(DialogAdapter.ADAPTER_DIALOGS, new AndroidDialogAdapter(this));//TODO: load adapters from modules
-        sf.addSystemService(SMSAdapter.ADAPTER_SMS, new AndroidSMSAdapter(this));
-        sf.addSystemService(WifiAdapter.ADAPTER_WIFI, new AndroidWifiAdapter(this));
-        sf.addSystemService(NotificationAdapter.ADAPTER_NOTIFICATION, new AndroidNotificationAdapter(getApplicationContext()));
-        sf.addSystemService(ToastAdapter.ADAPTER_TOAST, new ToastAdapter(this));
-
-
-
-
-        return sf;
-    }*/
 
 
     @Override

@@ -9,18 +9,26 @@ import android.widget.EditText;
 
 import com.sinapsi.android.R;
 import com.sinapsi.android.enginesystem.components.DefaultAndroidModules;
+import com.sinapsi.engine.PlatformDependantObjectProvider;
 import com.sinapsi.engine.system.DialogAdapter;
+import com.sinapsi.engine.system.annotations.AdapterImplementation;
+import com.sinapsi.engine.system.annotations.InitializationNeededObjects;
 import com.sinapsi.model.module.SinapsiModuleDescriptor;
 
 /**
  * DialogAdapter implementation for Android.
  */
+@AdapterImplementation(DialogAdapter.ADAPTER_DIALOGS)
+@InitializationNeededObjects(
+        PlatformDependantObjectProvider.ObjectKey.ANDROID_SERVICE_CONTEXT
+)
 public class AndroidDialogAdapter implements DialogAdapter {
 
     private Context context;
 
-    public AndroidDialogAdapter(Context c){
-        this.context = c;
+    @Override
+    public void init(Object... requiredPlatformDependantObjects) {
+        this.context = (Context) requiredPlatformDependantObjects[0];
     }
 
     @Override

@@ -59,7 +59,8 @@ public class LoginActivity extends SinapsiActionBarActivity implements LoaderCal
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        adi = new AndroidDeviceInfo(this);
+        adi = new AndroidDeviceInfo();
+        adi.init(this);
         setContentView(R.layout.activity_login);
 
         // Set up the login form.

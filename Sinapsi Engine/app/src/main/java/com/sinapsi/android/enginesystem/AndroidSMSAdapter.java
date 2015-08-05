@@ -7,7 +7,10 @@ import android.net.Uri;
 import android.telephony.SmsManager;
 
 import com.sinapsi.android.enginesystem.components.DefaultAndroidModules;
+import com.sinapsi.engine.PlatformDependantObjectProvider;
 import com.sinapsi.engine.system.SMSAdapter;
+import com.sinapsi.engine.system.annotations.AdapterImplementation;
+import com.sinapsi.engine.system.annotations.InitializationNeededObjects;
 import com.sinapsi.model.module.SinapsiModuleDescriptor;
 
 import java.util.ArrayList;
@@ -16,16 +19,17 @@ import java.util.List;
 /**
  * SMSAdapter implementation for Android.
  */
+@AdapterImplementation(SMSAdapter.ADAPTER_SMS)
+@InitializationNeededObjects(
+        PlatformDependantObjectProvider.ObjectKey.ANDROID_SERVICE_CONTEXT
+)
 public class AndroidSMSAdapter implements SMSAdapter {
 
     private Context context;
 
-    /**
-     * creates a new instance with the given context
-     * @param c the context
-     */
-    public AndroidSMSAdapter(Context c){
-        context = c;
+    @Override
+    public void init(Object... requiredPlatformDependantObjects) {
+        this.context = (Context) requiredPlatformDependantObjects[0];
     }
 
     @Override

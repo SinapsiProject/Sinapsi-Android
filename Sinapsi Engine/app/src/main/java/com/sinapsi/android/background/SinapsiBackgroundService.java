@@ -37,6 +37,9 @@ import com.sinapsi.client.persistence.InconsistentMacroChangeException;
 import com.sinapsi.client.persistence.UserSettingsFacade;
 import com.sinapsi.client.persistence.syncmodel.MacroSyncConflict;
 import com.sinapsi.engine.DefaultCoreModules;
+import com.sinapsi.engine.PlatformDependantObjectProvider;
+import com.sinapsi.engine.RequirementResolver;
+import com.sinapsi.engine.SystemFacadeGenerator;
 import com.sinapsi.utils.Triplet;
 import com.sinapsi.webshared.ComponentFactoryProvider;
 import com.sinapsi.client.web.OnlineStatusProvider;
@@ -188,25 +191,50 @@ public class SinapsiBackgroundService extends Service
         };
 
         // here starts engine initialization    ---------------------
-        SystemFacade sf = createAndroidSystemFacade();
-        VariableManager globalVariables = new VariableManager();
-
 
         engine = new MacroEngine(
                 device,
-                new AndroidActivationManager(
-                        new ExecutionInterface(
-                                sf,
-                                device,
-                                defaultWebExecutionInterface,
-                                globalVariables,
-                                sinapsiLog),
-                        this,
-                        sf),
+                new AndroidActivationManager(this),
+                defaultWebExecutionInterface,
+                new RequirementResolver() {
+                    @Override
+                    public void resolveRequirements(SystemFacade sf) {
+                        PackageManager pm = getPackageManager();
+
+                        sf.setRequirementSpec(DialogAdapter.REQUIREMENT_SIMPLE_DIALOGS, true);
+                        sf.setRequirementSpec(NotificationAdapter.REQUIREMENT_SIMPLE_NOTIFICATIONS, true);
+                        sf.setRequirementSpec(CommonDeviceConsts.REQUIREMENT_INTERCEPT_SCREEN_POWER, true);
+                        sf.setRequirementSpec(CommonDeviceConsts.REQUIREMENT_AC_CHARGER, true);
+                        sf.setRequirementSpec(DialogAdapter.REQUIREMENT_INPUT_DIALOGS, true);
+
+                        sf.setRequirementSpec(WifiAdapter.REQUIREMENT_WIFI, pm.hasSystemFeature(PackageManager.FEATURE_WIFI));
+                        sf.setRequirementSpec(SMSAdapter.REQUIREMENT_SMS_READ, pm.hasSystemFeature(PackageManager.FEATURE_TELEPHONY));
+
+                        sf.setRequirementSpec(ToastAdapter.REQUIREMENT_TOAST, true);
+                    }
+                },
+                new PlatformDependantObjectProvider() {
+                    @Override
+                    public Object getObject(ObjectKey key) throws ObjectNotAvailableException {
+                        switch (key){
+
+                            case ANDROID_SERVICE_CONTEXT:
+                                return SinapsiBackgroundService.this;
+
+                            case ANDROID_APPLICATION_CONTEXT:
+                                return getApplicationContext();
+
+                            default:
+                                throw new ObjectNotAvailableException(key.name());
+                        }
+                    }
+                },
+
                 sinapsiLog,
                 DefaultCoreModules.ANTARES_CORE_MODULE,
                 DefaultCoreModules.ANTARES_COMMONS_MODULE,
                 DefaultAndroidModules.ANTARES_ANDROID_MODULE);
+
         // here ends engine initialization      ---------------------
 
         // sync manager initialization ------------------------------
@@ -272,36 +300,21 @@ public class SinapsiBackgroundService extends Service
         //TODO: impl
     }
 
-    /**
-     * Initializes a SystemFacade instance for the Android platform
-     *
-     * @return a new SystemFacade instance
-     */
+    /*
     private SystemFacade createAndroidSystemFacade() {
         SystemFacade sf = new SystemFacade();
 
-        sf.addSystemService(DialogAdapter.SERVICE_DIALOGS, new AndroidDialogAdapter(this));//TODO: load adapters from modules
-        sf.addSystemService(SMSAdapter.SERVICE_SMS, new AndroidSMSAdapter(this));
-        sf.addSystemService(WifiAdapter.SERVICE_WIFI, new AndroidWifiAdapter(this));
-        sf.addSystemService(NotificationAdapter.SERVICE_NOTIFICATION, new AndroidNotificationAdapter(getApplicationContext()));
-        sf.addSystemService(ToastAdapter.SERVICE_TOAST, new ToastAdapter(this));
+        sf.addSystemService(DialogAdapter.ADAPTER_DIALOGS, new AndroidDialogAdapter(this));//TODO: load adapters from modules
+        sf.addSystemService(SMSAdapter.ADAPTER_SMS, new AndroidSMSAdapter(this));
+        sf.addSystemService(WifiAdapter.ADAPTER_WIFI, new AndroidWifiAdapter(this));
+        sf.addSystemService(NotificationAdapter.ADAPTER_NOTIFICATION, new AndroidNotificationAdapter(getApplicationContext()));
+        sf.addSystemService(ToastAdapter.ADAPTER_TOAST, new ToastAdapter(this));
 
-        PackageManager pm = getPackageManager();
 
-        sf.setRequirementSpec(DialogAdapter.REQUIREMENT_SIMPLE_DIALOGS, true);
-        sf.setRequirementSpec(NotificationAdapter.REQUIREMENT_SIMPLE_NOTIFICATIONS, true);
-        sf.setRequirementSpec(CommonDeviceConsts.REQUIREMENT_INTERCEPT_SCREEN_POWER, true);
-        sf.setRequirementSpec(CommonDeviceConsts.REQUIREMENT_AC_CHARGER, true);
-        sf.setRequirementSpec(DialogAdapter.REQUIREMENT_INPUT_DIALOGS, true);
-
-        sf.setRequirementSpec(WifiAdapter.REQUIREMENT_WIFI, pm.hasSystemFeature(PackageManager.FEATURE_WIFI));
-        sf.setRequirementSpec(SMSAdapter.REQUIREMENT_SMS_READ, pm.hasSystemFeature(PackageManager.FEATURE_TELEPHONY));
-
-        sf.setRequirementSpec(ToastAdapter.REQUIREMENT_TOAST, true);
 
 
         return sf;
-    }
+    }*/
 
 
     @Override

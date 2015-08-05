@@ -17,6 +17,7 @@ import com.sinapsi.model.module.SinapsiModule;
  */
 public class DefaultAndroidModules {
 
+
     public static final String ANTARES_ANDROID_PACKAGE_NAME = "ANTARES_ANDROID_MODULE";
     public static final String ANTARES_ANDROID_COMMONS_PACKAGE_NAME = "ANTARES_ANDROID_COMMONS_MODULE";
 

@@ -34,17 +34,22 @@ public class AndroidActivationManager extends ActivationManager {
 
     private BroadcastActivator[] activators = null;
 
+    private ContextWrapper contextWrapper;
+
     /**
      * Creates a new AndroidActivationManager instance with the specified
      * ContextWrapper and SystemFacade.
      *
      * @param contextWrapper the contextWrapper
-     * @param sf the SystemFacade, used for requirement checks
      */
-    public AndroidActivationManager(ExecutionInterface defaultExecutionInterface,
-                                    ContextWrapper contextWrapper,
-                                    SystemFacade sf) {
-        super(defaultExecutionInterface);
+    public AndroidActivationManager(ContextWrapper contextWrapper) {
+        this.contextWrapper = contextWrapper;
+    }
+
+    @Override
+    public void init(ExecutionInterface defaultExecutionInterface) {
+        super.init(defaultExecutionInterface);
+        SystemFacade sf = defaultExecutionInterface.getSystemFacade();
         if(sf.checkRequirement(WifiAdapter.REQUIREMENT_WIFI, 1)) wifiActivator = new BroadcastActivator(
                 this, newIntentFilter(
                 "android.net.wifi.STATE_CHANGE",
@@ -114,7 +119,6 @@ public class AndroidActivationManager extends ActivationManager {
                 screenPowerActivator,
                 acPowerActivator
         };
-
     }
 
     @Override

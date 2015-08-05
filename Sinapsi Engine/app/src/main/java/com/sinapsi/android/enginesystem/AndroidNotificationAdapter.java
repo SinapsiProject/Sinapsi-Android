@@ -7,18 +7,26 @@ import android.support.v4.app.NotificationCompat;
 
 import com.sinapsi.android.R;
 import com.sinapsi.android.enginesystem.components.DefaultAndroidModules;
+import com.sinapsi.engine.PlatformDependantObjectProvider;
 import com.sinapsi.engine.system.NotificationAdapter;
+import com.sinapsi.engine.system.annotations.AdapterImplementation;
+import com.sinapsi.engine.system.annotations.InitializationNeededObjects;
 import com.sinapsi.model.module.SinapsiModuleDescriptor;
 
 /**
  * NotificationAdapter - implementation for Android platform
  */
+@AdapterImplementation(NotificationAdapter.ADAPTER_NOTIFICATION)
+@InitializationNeededObjects(
+        PlatformDependantObjectProvider.ObjectKey.ANDROID_APPLICATION_CONTEXT
+)
 public class AndroidNotificationAdapter implements NotificationAdapter {
 
     private Context context;
 
-    public AndroidNotificationAdapter(Context c){
-        context = c;
+    @Override
+    public void init(Object... requiredPlatformDependantObjects) {
+        this.context = (Context) requiredPlatformDependantObjects[0];
     }
 
     @Override
@@ -38,4 +46,5 @@ public class AndroidNotificationAdapter implements NotificationAdapter {
     public SinapsiModuleDescriptor getBelongingSinapsiModule() {
         return DefaultAndroidModules.ANTARES_ANDROID_COMMONS_MODULE;
     }
+
 }

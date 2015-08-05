@@ -5,19 +5,28 @@ import android.os.Build;
 
 import com.sinapsi.android.AndroidAppConsts;
 import com.sinapsi.android.enginesystem.components.DefaultAndroidModules;
+import com.sinapsi.engine.PlatformDependantObjectProvider;
 import com.sinapsi.engine.SinapsiPlatforms;
 import com.sinapsi.engine.system.DeviceInfoAdapter;
+import com.sinapsi.engine.system.DialogAdapter;
+import com.sinapsi.engine.system.annotations.AdapterImplementation;
+import com.sinapsi.engine.system.annotations.InitializationNeededObjects;
 import com.sinapsi.model.module.SinapsiModuleDescriptor;
 
 /**
  * Android dependent class, give model and name of the current device
  */
+@AdapterImplementation(DeviceInfoAdapter.SERVICE_DEVICE_INFO)
+@InitializationNeededObjects(
+        PlatformDependantObjectProvider.ObjectKey.ANDROID_APPLICATION_CONTEXT
+)
 public class AndroidDeviceInfo implements DeviceInfoAdapter {
 
     private Context context;
 
-    public AndroidDeviceInfo(Context c){
-        this.context = c;
+    @Override
+    public void init(Object... requiredPlatformDependantObjects) {
+        this.context = (Context) requiredPlatformDependantObjects[0];
     }
 
     /**
@@ -63,4 +72,6 @@ public class AndroidDeviceInfo implements DeviceInfoAdapter {
     public SinapsiModuleDescriptor getBelongingSinapsiModule() {
         return DefaultAndroidModules.ANTARES_ANDROID_MODULE;
     }
+
+
 }

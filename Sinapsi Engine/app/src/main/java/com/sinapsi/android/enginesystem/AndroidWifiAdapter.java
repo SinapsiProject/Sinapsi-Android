@@ -6,20 +6,30 @@ import android.net.NetworkInfo;
 import android.net.wifi.WifiManager;
 
 import com.sinapsi.android.enginesystem.components.DefaultAndroidModules;
+import com.sinapsi.engine.PlatformDependantObjectProvider;
 import com.sinapsi.engine.system.WifiAdapter;
 import com.sinapsi.engine.parameters.ConnectionStatusChoices;
 import com.sinapsi.engine.parameters.SwitchStatusChoices;
+import com.sinapsi.engine.system.annotations.AdapterImplementation;
+import com.sinapsi.engine.system.annotations.InitializationNeededObjects;
 import com.sinapsi.model.module.SinapsiModuleDescriptor;
 
 /**
  * WifiAdapter implementation for Android.
  */
+@AdapterImplementation(WifiAdapter.ADAPTER_WIFI)
+@InitializationNeededObjects(
+        PlatformDependantObjectProvider.ObjectKey.ANDROID_SERVICE_CONTEXT
+)
 public class AndroidWifiAdapter implements WifiAdapter{
 
     private WifiManager wm;
     private ConnectivityManager cm;
 
-    public AndroidWifiAdapter(Context context){
+
+    @Override
+    public void init(Object... requiredPlatformDependantObjects) {
+        Context context = (Context) requiredPlatformDependantObjects[0];
         wm = (WifiManager) context.getSystemService(Context.WIFI_SERVICE);
         cm = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
     }

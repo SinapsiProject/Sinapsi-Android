@@ -4,20 +4,28 @@ import android.content.Context;
 import android.widget.Toast;
 
 import com.sinapsi.android.enginesystem.components.DefaultAndroidModules;
+import com.sinapsi.engine.PlatformDependantObjectProvider;
 import com.sinapsi.engine.system.ComponentSystemAdapter;
+import com.sinapsi.engine.system.annotations.AdapterImplementation;
+import com.sinapsi.engine.system.annotations.InitializationNeededObjects;
 import com.sinapsi.model.module.SinapsiModuleDescriptor;
 
 /**
  * This provides a way for actions to call Toast.makeText().show() .
  */
+@AdapterImplementation(ToastAdapter.ADAPTER_TOAST)
+@InitializationNeededObjects(
+        PlatformDependantObjectProvider.ObjectKey.ANDROID_SERVICE_CONTEXT
+)
 public class ToastAdapter implements ComponentSystemAdapter{
-    public static final String SERVICE_TOAST = "SERVICE_TOAST";
+    public static final String ADAPTER_TOAST = "ADAPTER_TOAST";
     public static final String REQUIREMENT_TOAST = "REQUIREMENT_TOAST";
 
-    private final Context context;
+    private Context context;
 
-    public ToastAdapter(Context context){
-        this.context = context;
+    @Override
+    public void init(Object... requiredPlatformDependantObjects) {
+        this.context = (Context) requiredPlatformDependantObjects[0];
     }
 
     public void printMessage(String message){

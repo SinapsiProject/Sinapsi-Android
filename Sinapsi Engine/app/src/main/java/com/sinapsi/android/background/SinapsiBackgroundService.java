@@ -195,7 +195,9 @@ public class SinapsiBackgroundService extends Service
                     @Override
                     public Object getObject(ObjectKey key) throws ObjectNotAvailableException {
                         switch (key){
-
+                            case LOGGED_USER:
+                                return loggedUser;
+                            
                             case ANDROID_SERVICE_CONTEXT:
                                 return SinapsiBackgroundService.this;
 

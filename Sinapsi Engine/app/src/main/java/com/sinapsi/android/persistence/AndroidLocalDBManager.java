@@ -8,9 +8,9 @@ import android.database.sqlite.SQLiteDatabase;
 import com.sinapsi.android.AndroidAppConsts;
 import com.sinapsi.android.Lol;
 import com.sinapsi.client.persistence.LocalDBManager;
-import com.sinapsi.engine.Action;
-import com.sinapsi.engine.ComponentFactory;
-import com.sinapsi.engine.Trigger;
+import com.sinapsi.engine.component.Action;
+import com.sinapsi.engine.component.ComponentFactory;
+import com.sinapsi.engine.component.Trigger;
 import com.sinapsi.model.MacroInterface;
 import com.sinapsi.model.impl.FactoryModel;
 

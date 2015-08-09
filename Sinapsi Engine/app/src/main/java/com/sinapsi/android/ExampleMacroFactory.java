@@ -2,15 +2,15 @@ package com.sinapsi.android;
 
 import com.sinapsi.android.background.SinapsiBackgroundService;
 import com.sinapsi.android.enginesystem.components.ActionToast;
-import com.sinapsi.engine.VariableManager;
-import com.sinapsi.engine.components.common.ActionContinueConfirmDialog;
-import com.sinapsi.engine.components.core.ActionLog;
-import com.sinapsi.engine.components.core.ActionSetVariable;
-import com.sinapsi.engine.components.common.ActionSimpleNotification;
-import com.sinapsi.engine.components.common.ActionStringInputDialog;
-import com.sinapsi.engine.components.common.TriggerACPower;
-import com.sinapsi.engine.components.common.TriggerSMS;
-import com.sinapsi.engine.components.common.TriggerScreenPower;
+import com.sinapsi.engine.variables.VariableManager;
+import com.sinapsi.engine.modules.common.ActionContinueConfirmDialog;
+import com.sinapsi.engine.modules.core.ActionLog;
+import com.sinapsi.engine.modules.core.ActionSetVariable;
+import com.sinapsi.engine.modules.common.ActionSimpleNotification;
+import com.sinapsi.engine.modules.common.ActionStringInputDialog;
+import com.sinapsi.engine.modules.common.TriggerACPower;
+import com.sinapsi.engine.modules.common.TriggerSMS;
+import com.sinapsi.engine.modules.common.TriggerScreenPower;
 import com.sinapsi.engine.parameters.ActualParamBuilder;
 import com.sinapsi.model.MacroInterface;
 

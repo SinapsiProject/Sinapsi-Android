@@ -9,16 +9,20 @@ import android.widget.EditText;
 
 import com.sinapsi.android.R;
 import com.sinapsi.android.enginesystem.components.DefaultAndroidModules;
-import com.sinapsi.engine.PlatformDependantObjectProvider;
-import com.sinapsi.engine.system.DialogAdapter;
-import com.sinapsi.engine.system.annotations.AdapterImplementation;
-import com.sinapsi.engine.system.annotations.InitializationNeededObjects;
-import com.sinapsi.model.module.SinapsiModuleDescriptor;
+import com.sinapsi.engine.system.PlatformDependantObjectProvider;
+import com.sinapsi.engine.SinapsiPlatforms;
+import com.sinapsi.engine.modules.common.DialogAdapter;
+import com.sinapsi.engine.annotations.AdapterImplementation;
+import com.sinapsi.engine.annotations.InitializationNeededObjects;
+import com.sinapsi.model.module.ModuleMember;
 
 /**
  * DialogAdapter implementation for Android.
  */
-@AdapterImplementation(DialogAdapter.ADAPTER_DIALOGS)
+@ModuleMember(DefaultAndroidModules.ANTARES_ANDROID_COMMON_ADAPTERS_MODULE_NAME)
+@AdapterImplementation(
+        value = DialogAdapter.ADAPTER_DIALOGS,
+        platform = SinapsiPlatforms.PLATFORM_ANDROID)
 @InitializationNeededObjects(
         PlatformDependantObjectProvider.ObjectKey.ANDROID_SERVICE_CONTEXT
 )
@@ -83,8 +87,5 @@ public class AndroidDialogAdapter implements DialogAdapter {
         alertDialog.show();
     }
 
-    @Override
-    public SinapsiModuleDescriptor getBelongingSinapsiModule() {
-        return DefaultAndroidModules.ANTARES_ANDROID_COMMONS_MODULE;
-    }
+
 }

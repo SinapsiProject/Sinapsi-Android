@@ -4,16 +4,21 @@ import android.content.Context;
 import android.widget.Toast;
 
 import com.sinapsi.android.enginesystem.components.DefaultAndroidModules;
-import com.sinapsi.engine.PlatformDependantObjectProvider;
-import com.sinapsi.engine.ComponentSystemAdapter;
-import com.sinapsi.engine.system.annotations.AdapterImplementation;
-import com.sinapsi.engine.system.annotations.InitializationNeededObjects;
-import com.sinapsi.model.module.SinapsiModuleDescriptor;
+import com.sinapsi.engine.system.PlatformDependantObjectProvider;
+import com.sinapsi.engine.system.ComponentSystemAdapter;
+import com.sinapsi.engine.SinapsiPlatforms;
+import com.sinapsi.engine.annotations.AdapterImplementation;
+import com.sinapsi.engine.annotations.InitializationNeededObjects;
+import com.sinapsi.model.module.ModuleMember;
 
 /**
  * This provides a way for actions to call Toast.makeText().show() .
  */
-@AdapterImplementation(ToastAdapter.ADAPTER_TOAST)
+@ModuleMember(DefaultAndroidModules.ANTARES_ANDROID_MODULE_NAME)
+@AdapterImplementation(
+        value = ToastAdapter.ADAPTER_TOAST,
+        platform = SinapsiPlatforms.PLATFORM_ANDROID
+)
 @InitializationNeededObjects(
         PlatformDependantObjectProvider.ObjectKey.ANDROID_SERVICE_CONTEXT
 )
@@ -31,8 +36,5 @@ public class ToastAdapter implements ComponentSystemAdapter{
         Toast.makeText(context, message, Toast.LENGTH_SHORT).show();
     }
 
-    @Override
-    public SinapsiModuleDescriptor getBelongingSinapsiModule() {
-        return DefaultAndroidModules.ANTARES_ANDROID_MODULE;
-    }
+
 }

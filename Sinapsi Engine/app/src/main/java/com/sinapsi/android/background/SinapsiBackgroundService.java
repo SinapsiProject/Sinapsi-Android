@@ -33,9 +33,9 @@ import com.sinapsi.client.SyncManager;
 import com.sinapsi.client.persistence.InconsistentMacroChangeException;
 import com.sinapsi.client.persistence.UserSettingsFacade;
 import com.sinapsi.client.persistence.syncmodel.MacroSyncConflict;
-import com.sinapsi.engine.DefaultCoreModules;
-import com.sinapsi.engine.DefaultRequirementResolver;
-import com.sinapsi.engine.PlatformDependantObjectProvider;
+import com.sinapsi.engine.modules.DefaultCoreModules;
+import com.sinapsi.engine.requirements.DefaultRequirementResolver;
+import com.sinapsi.engine.system.PlatformDependantObjectProvider;
 import com.sinapsi.utils.Triplet;
 import com.sinapsi.webshared.ComponentFactoryProvider;
 import com.sinapsi.client.web.OnlineStatusProvider;
@@ -44,17 +44,17 @@ import com.sinapsi.android.enginesystem.AndroidActivationManager;
 import com.sinapsi.client.web.SinapsiWebServiceFacade;
 import com.sinapsi.client.web.UserLoginStatusListener;
 import com.sinapsi.client.websocket.WSClient;
-import com.sinapsi.engine.ComponentFactory;
+import com.sinapsi.engine.component.ComponentFactory;
 import com.sinapsi.engine.MacroEngine;
 import com.sinapsi.android.R;
-import com.sinapsi.engine.VariableManager;
-import com.sinapsi.engine.components.common.ActionContinueConfirmDialog;
-import com.sinapsi.engine.components.core.ActionLog;
-import com.sinapsi.engine.components.core.ActionSetVariable;
-import com.sinapsi.engine.components.common.ActionSimpleNotification;
-import com.sinapsi.engine.components.common.ActionWifiState;
-import com.sinapsi.engine.components.common.TriggerScreenPower;
-import com.sinapsi.engine.components.common.TriggerWifi;
+import com.sinapsi.engine.variables.VariableManager;
+import com.sinapsi.engine.modules.common.ActionContinueConfirmDialog;
+import com.sinapsi.engine.modules.core.ActionLog;
+import com.sinapsi.engine.modules.core.ActionSetVariable;
+import com.sinapsi.engine.modules.common.ActionSimpleNotification;
+import com.sinapsi.engine.modules.common.ActionWifiState;
+import com.sinapsi.engine.modules.common.TriggerScreenPower;
+import com.sinapsi.engine.modules.common.TriggerWifi;
 import com.sinapsi.engine.execution.ExecutionInterface;
 import com.sinapsi.engine.execution.RemoteExecutionDescriptor;
 import com.sinapsi.engine.execution.WebExecutionInterface;
@@ -209,7 +209,7 @@ public class SinapsiBackgroundService extends Service
 
                 sinapsiLog,
                 DefaultCoreModules.ANTARES_CORE_MODULE,
-                DefaultCoreModules.ANTARES_COMMONS_MODULE,
+                DefaultCoreModules.ANTARES_COMMON_COMPONENTS_MODULE,
                 DefaultAndroidModules.ANTARES_ANDROID_MODULE);
 
         // here ends engine initialization      ---------------------

@@ -7,11 +7,12 @@ import android.net.Uri;
 import android.telephony.SmsManager;
 
 import com.sinapsi.android.enginesystem.components.DefaultAndroidModules;
-import com.sinapsi.engine.PlatformDependantObjectProvider;
-import com.sinapsi.engine.system.SMSAdapter;
-import com.sinapsi.engine.system.annotations.AdapterImplementation;
-import com.sinapsi.engine.system.annotations.InitializationNeededObjects;
-import com.sinapsi.model.module.SinapsiModuleDescriptor;
+import com.sinapsi.engine.system.PlatformDependantObjectProvider;
+import com.sinapsi.engine.SinapsiPlatforms;
+import com.sinapsi.engine.modules.common.SMSAdapter;
+import com.sinapsi.engine.annotations.AdapterImplementation;
+import com.sinapsi.engine.annotations.InitializationNeededObjects;
+import com.sinapsi.model.module.ModuleMember;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -19,7 +20,10 @@ import java.util.List;
 /**
  * SMSAdapter implementation for Android.
  */
-@AdapterImplementation(SMSAdapter.ADAPTER_SMS)
+@ModuleMember(DefaultAndroidModules.ANTARES_ANDROID_COMMON_ADAPTERS_MODULE_NAME)
+@AdapterImplementation(
+        value = SMSAdapter.ADAPTER_SMS,
+        platform = SinapsiPlatforms.PLATFORM_ANDROID)
 @InitializationNeededObjects(
         PlatformDependantObjectProvider.ObjectKey.ANDROID_SERVICE_CONTEXT
 )
@@ -79,10 +83,5 @@ public class AndroidSMSAdapter implements SMSAdapter {
         c.close();
 
         return lstSms;
-    }
-
-    @Override
-    public SinapsiModuleDescriptor getBelongingSinapsiModule() {
-        return DefaultAndroidModules.ANTARES_ANDROID_COMMONS_MODULE;
     }
 }

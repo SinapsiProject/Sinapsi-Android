@@ -5,17 +5,20 @@ import android.os.Build;
 
 import com.sinapsi.android.AndroidAppConsts;
 import com.sinapsi.android.enginesystem.components.DefaultAndroidModules;
-import com.sinapsi.engine.PlatformDependantObjectProvider;
+import com.sinapsi.engine.system.PlatformDependantObjectProvider;
 import com.sinapsi.engine.SinapsiPlatforms;
-import com.sinapsi.engine.system.DeviceInfoAdapter;
-import com.sinapsi.engine.system.annotations.AdapterImplementation;
-import com.sinapsi.engine.system.annotations.InitializationNeededObjects;
-import com.sinapsi.model.module.SinapsiModuleDescriptor;
+import com.sinapsi.engine.modules.common.DeviceInfoAdapter;
+import com.sinapsi.engine.annotations.AdapterImplementation;
+import com.sinapsi.engine.annotations.InitializationNeededObjects;
+import com.sinapsi.model.module.ModuleMember;
 
 /**
  * Android dependent class, give model and name of the current device
  */
-@AdapterImplementation(DeviceInfoAdapter.ADAPTER_DEVICE_INFO)
+@ModuleMember(DefaultAndroidModules.ANTARES_ANDROID_MODULE_NAME)
+@AdapterImplementation(
+        value = DeviceInfoAdapter.ADAPTER_DEVICE_INFO,
+        platform = SinapsiPlatforms.PLATFORM_ANDROID)
 @InitializationNeededObjects(
         PlatformDependantObjectProvider.ObjectKey.ANDROID_APPLICATION_CONTEXT
 )
@@ -65,11 +68,6 @@ public class AndroidDeviceInfo implements DeviceInfoAdapter {
     @Override
     public String getDeviceType() {
         return SinapsiPlatforms.PLATFORM_ANDROID;
-    }
-
-    @Override
-    public SinapsiModuleDescriptor getBelongingSinapsiModule() {
-        return DefaultAndroidModules.ANTARES_ANDROID_MODULE;
     }
 
 

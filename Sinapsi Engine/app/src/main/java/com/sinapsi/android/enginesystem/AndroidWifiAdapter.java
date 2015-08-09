@@ -6,18 +6,23 @@ import android.net.NetworkInfo;
 import android.net.wifi.WifiManager;
 
 import com.sinapsi.android.enginesystem.components.DefaultAndroidModules;
-import com.sinapsi.engine.PlatformDependantObjectProvider;
-import com.sinapsi.engine.system.WifiAdapter;
+import com.sinapsi.engine.system.PlatformDependantObjectProvider;
+import com.sinapsi.engine.SinapsiPlatforms;
+import com.sinapsi.engine.modules.common.WifiAdapter;
 import com.sinapsi.engine.parameters.ConnectionStatusChoices;
 import com.sinapsi.engine.parameters.SwitchStatusChoices;
-import com.sinapsi.engine.system.annotations.AdapterImplementation;
-import com.sinapsi.engine.system.annotations.InitializationNeededObjects;
-import com.sinapsi.model.module.SinapsiModuleDescriptor;
+import com.sinapsi.engine.annotations.AdapterImplementation;
+import com.sinapsi.engine.annotations.InitializationNeededObjects;
+import com.sinapsi.model.module.ModuleMember;
 
 /**
  * WifiAdapter implementation for Android.
  */
-@AdapterImplementation(WifiAdapter.ADAPTER_WIFI)
+@ModuleMember(DefaultAndroidModules.ANTARES_ANDROID_COMMON_ADAPTERS_MODULE_NAME)
+@AdapterImplementation(
+        value = WifiAdapter.ADAPTER_WIFI,
+        platform = SinapsiPlatforms.PLATFORM_ANDROID
+)
 @InitializationNeededObjects(
         PlatformDependantObjectProvider.ObjectKey.ANDROID_SERVICE_CONTEXT
 )
@@ -89,8 +94,4 @@ public class AndroidWifiAdapter implements WifiAdapter{
         }
     }
 
-    @Override
-    public SinapsiModuleDescriptor getBelongingSinapsiModule() {
-        return DefaultAndroidModules.ANTARES_ANDROID_COMMONS_MODULE;
-    }
 }

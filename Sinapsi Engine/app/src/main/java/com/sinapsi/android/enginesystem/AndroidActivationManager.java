@@ -7,14 +7,14 @@ import android.content.IntentFilter;
 import android.telephony.SmsMessage;
 
 import com.sinapsi.android.utils.IntentUtils;
-import com.sinapsi.engine.ActivationManager;
-import com.sinapsi.engine.DefaultCoreModules;
-import com.sinapsi.engine.Event;
-import com.sinapsi.engine.Trigger;
-import com.sinapsi.engine.components.common.TriggerACPower;
-import com.sinapsi.engine.components.common.TriggerSMS;
-import com.sinapsi.engine.components.common.TriggerScreenPower;
-import com.sinapsi.engine.components.common.TriggerWifi;
+import com.sinapsi.engine.activation.ActivationManager;
+import com.sinapsi.engine.modules.DefaultCoreModules;
+import com.sinapsi.engine.activation.Event;
+import com.sinapsi.engine.component.Trigger;
+import com.sinapsi.engine.modules.common.TriggerACPower;
+import com.sinapsi.engine.modules.common.TriggerSMS;
+import com.sinapsi.engine.modules.common.TriggerScreenPower;
+import com.sinapsi.engine.modules.common.TriggerWifi;
 import com.sinapsi.engine.execution.ExecutionInterface;
 import com.sinapsi.engine.system.SystemFacade;
 

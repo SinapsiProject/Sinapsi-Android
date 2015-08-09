@@ -9,9 +9,9 @@ import com.sinapsi.android.enginesystem.AndroidNotificationAdapter;
 import com.sinapsi.android.enginesystem.AndroidSMSAdapter;
 import com.sinapsi.android.enginesystem.AndroidWifiAdapter;
 import com.sinapsi.android.enginesystem.ToastAdapter;
-import com.sinapsi.engine.DefaultCoreModules;
-import com.sinapsi.engine.PlatformDependantObjectProvider;
-import com.sinapsi.engine.RequirementResolver;
+import com.sinapsi.engine.modules.DefaultCoreModules;
+import com.sinapsi.engine.system.PlatformDependantObjectProvider;
+import com.sinapsi.engine.requirements.RequirementResolver;
 import com.sinapsi.engine.SinapsiPlatforms;
 import com.sinapsi.engine.SinapsiVersions;
 import com.sinapsi.engine.system.SystemFacade;
@@ -24,14 +24,14 @@ import com.sinapsi.model.module.SinapsiModule;
 public class DefaultAndroidModules {
 
 
-    public static final String ANTARES_ANDROID_PACKAGE_NAME = "ANTARES_ANDROID_MODULE";
+    public static final String ANTARES_ANDROID_MODULE_NAME = "ANTARES_ANDROID_MODULE";
 
     public static final String REQUIREMENT_TOAST = "REQUIREMENT_TOAST";
 
     public static final SinapsiModule ANTARES_ANDROID_MODULE = new FactoryModel().newModule(
             SinapsiVersions.ANTARES.ordinal(),
             SinapsiVersions.ANTARES.ordinal(),
-            ANTARES_ANDROID_PACKAGE_NAME,
+            ANTARES_ANDROID_MODULE_NAME,
             DefaultCoreModules.SINAPSI_TEAM_DEVELOPER_ID,
             SinapsiPlatforms.PLATFORM_ANDROID,
             new RequirementResolver() {
@@ -50,6 +50,9 @@ public class DefaultAndroidModules {
                     sf.setRequirementSpec(REQUIREMENT_TOAST, true);
                 }
             },
+            null,
+            null,
+            null,
 
             ActionToast.class,
 
@@ -58,12 +61,12 @@ public class DefaultAndroidModules {
             AndroidDeviceInfo.class
     );
 
-    public static final String ANTARES_ANDROID_COMMONS_PACKAGE_NAME = "ANTARES_ANDROID_COMMONS_MODULE";
+    public static final String ANTARES_ANDROID_COMMON_ADAPTERS_MODULE_NAME = "ANTARES_ANDROID_COMMON_ADAPTERS_MODULE";
 
-    public static final SinapsiModule ANTARES_ANDROID_COMMONS_MODULE = new FactoryModel().newModule(
+    public static final SinapsiModule ANTARES_ANDROID_COMMON_ADAPTERS_MODULE = new FactoryModel().newModule(
             SinapsiVersions.ANTARES.ordinal(),
             SinapsiVersions.ANTARES.ordinal(),
-            ANTARES_ANDROID_COMMONS_PACKAGE_NAME,
+            ANTARES_ANDROID_COMMON_ADAPTERS_MODULE_NAME,
             DefaultCoreModules.SINAPSI_TEAM_DEVELOPER_ID,
             SinapsiPlatforms.PLATFORM_ANDROID,
             new RequirementResolver() {
@@ -97,7 +100,9 @@ public class DefaultAndroidModules {
                     sf.setRequirementSpec(DefaultCoreModules.REQUIREMENT_INPUT_DIALOGS, true);
                 }
             },
-
+            null,
+            new String[]{DefaultCoreModules.ROLE_ANTARES_COMMON_ADAPTERS},
+            null,
 
             AndroidDialogAdapter.class,
             AndroidNotificationAdapter.class,

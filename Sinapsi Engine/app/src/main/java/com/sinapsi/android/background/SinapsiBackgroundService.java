@@ -30,6 +30,7 @@ import com.sinapsi.android.Lol;
 import com.sinapsi.android.persistence.AndroidUserSettingsFacade;
 import com.sinapsi.client.SafeSyncManager;
 import com.sinapsi.client.SyncManager;
+import com.sinapsi.client.background.WebServiceConnectionListener;
 import com.sinapsi.client.persistence.InconsistentMacroChangeException;
 import com.sinapsi.client.persistence.UserSettingsFacade;
 import com.sinapsi.client.persistence.syncmodel.MacroSyncConflict;
@@ -329,6 +330,7 @@ public class SinapsiBackgroundService extends Service
     /**
      * Online status getter.
      */
+    @Override
     public boolean isOnline() {
         ConnectivityManager cm =
                 (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
@@ -392,6 +394,7 @@ public class SinapsiBackgroundService extends Service
             case SinapsiMessageTypes.CONNECTION_LOST: {
 
             }
+            break;
         }
     }
 

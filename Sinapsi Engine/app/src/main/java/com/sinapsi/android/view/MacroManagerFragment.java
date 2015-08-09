@@ -28,7 +28,7 @@ import com.sinapsi.android.R;
 import com.sinapsi.android.background.SinapsiActionBarActivity;
 import com.sinapsi.android.background.SinapsiBackgroundService;
 import com.sinapsi.android.background.SinapsiFragment;
-import com.sinapsi.android.background.WebServiceConnectionListener;
+import com.sinapsi.client.background.WebServiceConnectionListener;
 import com.sinapsi.android.utils.DialogUtils;
 import com.sinapsi.android.utils.GraphicsUtils;
 import com.sinapsi.android.utils.animation.ViewTransitionManager;

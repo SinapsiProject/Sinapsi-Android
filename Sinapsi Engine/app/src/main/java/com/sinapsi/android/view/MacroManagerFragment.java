@@ -28,6 +28,7 @@ import com.sinapsi.android.R;
 import com.sinapsi.android.background.SinapsiActionBarActivity;
 import com.sinapsi.android.background.SinapsiBackgroundService;
 import com.sinapsi.android.background.SinapsiFragment;
+import com.sinapsi.client.background.SinapsiDaemonThread;
 import com.sinapsi.client.background.WebServiceConnectionListener;
 import com.sinapsi.android.utils.DialogUtils;
 import com.sinapsi.android.utils.GraphicsUtils;
@@ -229,6 +230,7 @@ public class MacroManagerFragment extends SinapsiFragment implements WebServiceC
                 salm.clear();
 
                 //delete macro button
+                //noinspection unchecked
                 salm.addSwipeAction(new SmartSwipeActionButton(
                         elem,
                         getActivity(),
@@ -247,7 +249,7 @@ public class MacroManagerFragment extends SinapsiFragment implements WebServiceC
                                     @Override
                                     public void onClick(DialogInterface dialog, int which) {
                                         transitionManager.makeTransitionIfDifferent(States.PROGRESS.name());
-                                        service.removeMacro(elem.getId(), new SinapsiBackgroundService.BackgroundSyncCallback() {
+                                        service.removeMacro(elem.getId(), new SinapsiDaemonThread.BackgroundSyncCallback() {
                                             @Override
                                             public void onBackgroundSyncSuccess(List<MacroInterface> currentMacros) {
                                                 updateContent(true, currentMacros);
@@ -273,6 +275,7 @@ public class MacroManagerFragment extends SinapsiFragment implements WebServiceC
                 });
 
                 //edit macro button
+                //noinspection unchecked
                 salm.addSwipeAction(new SmartSwipeActionButton(
                         elem,
                         getActivity(),
@@ -292,7 +295,7 @@ public class MacroManagerFragment extends SinapsiFragment implements WebServiceC
                                 } else {
                                     if ((Boolean) returnValues[1]) //updates the macro only if there was at least a change in the editor
                                         transitionManager.makeTransitionIfDifferent(States.PROGRESS.name());
-                                    service.updateMacro((MacroInterface) returnValues[0], new SinapsiBackgroundService.BackgroundSyncCallback() {
+                                    service.updateMacro((MacroInterface) returnValues[0], new SinapsiDaemonThread.BackgroundSyncCallback() {
                                         @Override
                                         public void onBackgroundSyncSuccess(List<MacroInterface> currentMacros) {
                                             updateContent(true, currentMacros);
@@ -342,7 +345,7 @@ public class MacroManagerFragment extends SinapsiFragment implements WebServiceC
                         }
 
                         transitionManager.makeTransitionIfDifferent(States.PROGRESS.name());
-                        service.updateMacro(elem, new SinapsiBackgroundService.BackgroundSyncCallback() {
+                        service.updateMacro(elem, new SinapsiDaemonThread.BackgroundSyncCallback() {
                             @Override
                             public void onBackgroundSyncSuccess(List<MacroInterface> currentMacros) {
                                 updateContent(true, currentMacros);
@@ -431,7 +434,7 @@ public class MacroManagerFragment extends SinapsiFragment implements WebServiceC
 
 
         if (macros == null) {
-            service.syncMacros(new SinapsiBackgroundService.BackgroundSyncCallback() {
+            service.syncMacros(new SinapsiDaemonThread.BackgroundSyncCallback() {
                 @Override
                 public void onBackgroundSyncSuccess(List<MacroInterface> currentMacros) {
                     updateMacroList(currentMacros);
@@ -483,7 +486,7 @@ public class MacroManagerFragment extends SinapsiFragment implements WebServiceC
                         throw new RuntimeException("OnActivityReturn failed");
                     } else {
                         Lol.printNullity(this, "returnValues[0]", returnValues[0]);
-                        service.addMacro((MacroInterface) returnValues[0], new SinapsiBackgroundService.BackgroundSyncCallback() {
+                        service.addMacro((MacroInterface) returnValues[0], new SinapsiDaemonThread.BackgroundSyncCallback() {
                             @Override
                             public void onBackgroundSyncSuccess(List<MacroInterface> currentMacros) {
                                 updateContent(true, currentMacros);
@@ -506,7 +509,7 @@ public class MacroManagerFragment extends SinapsiFragment implements WebServiceC
             }, EditorActivity.class, m);
         }else{
             ExampleMacroFactory.example1(service, m);
-            service.addMacro((MacroInterface) m, new SinapsiBackgroundService.BackgroundSyncCallback() {
+            service.addMacro((MacroInterface) m, new SinapsiDaemonThread.BackgroundSyncCallback() {
                 @Override
                 public void onBackgroundSyncSuccess(List<MacroInterface> currentMacros) {
                     updateContent(true, currentMacros);
@@ -543,7 +546,7 @@ public class MacroManagerFragment extends SinapsiFragment implements WebServiceC
     @Override
     public void onServiceConnected(SinapsiBackgroundService service) {
         super.onServiceConnected(service);
-        service.addWebServiceConnectionListener(this);
+        service.getDaemon().addWebServiceConnectionListener(this);
 
         //updates on service connected only if this is visible to the user
         if (created) updateContent(true, null);

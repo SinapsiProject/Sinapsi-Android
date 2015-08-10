@@ -13,71 +13,50 @@ import android.os.IBinder;
 import android.os.Looper;
 import android.os.Message;
 import android.support.v4.app.NotificationCompat;
-import android.util.Log;
 
-import com.google.gson.Gson;
-import com.sinapsi.android.AndroidAppConsts;
 import com.sinapsi.android.SinapsiAndroidApplication;
 import com.sinapsi.android.enginesystem.components.DefaultAndroidModules;
 import com.sinapsi.android.persistence.AndroidDiffDBManager;
 import com.sinapsi.android.persistence.AndroidLocalDBManager;
 import com.sinapsi.android.utils.DialogUtils;
+import com.sinapsi.android.view.LoginActivity;
 import com.sinapsi.android.view.MainActivity;
 import com.sinapsi.android.web.AndroidBase64DecodingMethod;
 import com.sinapsi.android.web.AndroidBase64EncodingMethod;
 import com.sinapsi.client.AppConsts;
 import com.sinapsi.android.Lol;
 import com.sinapsi.android.persistence.AndroidUserSettingsFacade;
-import com.sinapsi.client.SafeSyncManager;
 import com.sinapsi.client.SyncManager;
-import com.sinapsi.client.background.WebServiceConnectionListener;
+import com.sinapsi.client.background.SinapsiDaemonThread;
+import com.sinapsi.client.persistence.DiffDBManager;
 import com.sinapsi.client.persistence.InconsistentMacroChangeException;
+import com.sinapsi.client.persistence.LocalDBManager;
 import com.sinapsi.client.persistence.UserSettingsFacade;
+import com.sinapsi.client.persistence.syncmodel.MacroChange;
 import com.sinapsi.client.persistence.syncmodel.MacroSyncConflict;
+import com.sinapsi.client.web.SinapsiWebServiceFacade;
+import com.sinapsi.client.websocket.WSClient;
 import com.sinapsi.engine.modules.DefaultCoreModules;
 import com.sinapsi.engine.requirements.DefaultRequirementResolver;
 import com.sinapsi.engine.system.PlatformDependantObjectProvider;
+import com.sinapsi.model.DeviceInterface;
+import com.sinapsi.model.impl.Device;
 import com.sinapsi.utils.Triplet;
-import com.sinapsi.webshared.ComponentFactoryProvider;
 import com.sinapsi.client.web.OnlineStatusProvider;
-import com.sinapsi.client.web.RetrofitWebServiceFacade;
 import com.sinapsi.android.enginesystem.AndroidActivationManager;
-import com.sinapsi.client.web.SinapsiWebServiceFacade;
-import com.sinapsi.client.web.UserLoginStatusListener;
-import com.sinapsi.client.websocket.WSClient;
 import com.sinapsi.engine.component.ComponentFactory;
 import com.sinapsi.engine.MacroEngine;
 import com.sinapsi.android.R;
-import com.sinapsi.engine.variables.VariableManager;
-import com.sinapsi.engine.modules.common.ActionContinueConfirmDialog;
-import com.sinapsi.engine.modules.core.ActionLog;
-import com.sinapsi.engine.modules.core.ActionSetVariable;
-import com.sinapsi.engine.modules.common.ActionSimpleNotification;
-import com.sinapsi.engine.modules.common.ActionWifiState;
-import com.sinapsi.engine.modules.common.TriggerScreenPower;
-import com.sinapsi.engine.modules.common.TriggerWifi;
-import com.sinapsi.engine.execution.ExecutionInterface;
 import com.sinapsi.engine.execution.RemoteExecutionDescriptor;
-import com.sinapsi.engine.execution.WebExecutionInterface;
 import com.sinapsi.engine.log.LogMessage;
 import com.sinapsi.engine.log.SinapsiLog;
 import com.sinapsi.engine.log.SystemLogInterface;
-import com.sinapsi.engine.parameters.ConnectionStatusChoices;
 import com.sinapsi.engine.system.SystemFacade;
-import com.sinapsi.model.DeviceInterface;
 import com.sinapsi.model.MacroInterface;
 import com.sinapsi.model.UserInterface;
-import com.sinapsi.model.impl.CommunicationInfo;
 import com.sinapsi.model.impl.FactoryModel;
-import com.sinapsi.engine.parameters.ActualParamBuilder;
-import com.sinapsi.webshared.wsproto.SinapsiMessageTypes;
-import com.sinapsi.webshared.wsproto.WebSocketEventHandler;
-import com.sinapsi.webshared.wsproto.WebSocketMessage;
 
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import retrofit.RetrofitError;
 import retrofit.android.AndroidLog;
@@ -91,28 +70,21 @@ import retrofit.android.AndroidLog;
 public class SinapsiBackgroundService extends Service
         implements
         OnlineStatusProvider,
-        WebSocketEventHandler,
-        UserLoginStatusListener,
-        ComponentFactoryProvider {
+        SinapsiDaemonThread.DaemonCallbacks{
 
-    private RetrofitWebServiceFacade web;
-    private SafeSyncManager safeSyncManager;
+    private SinapsiDaemonThread daemon;
+
     private UserSettingsFacade settings;
 
-    private MacroEngine engine;
     private SinapsiLog sinapsiLog;
-    private DeviceInterface device;
 
     private static FactoryModel fm = new FactoryModel();
 
-    private Map<String, WebServiceConnectionListener> connectionListeners = new HashMap<>();
 
-    private boolean started = false;
-    private boolean onlineMode = false;
     private static final UserInterface logoutUser = fm.newUser(-1, "Not logged in yet.", "", false, "user");
     private UserInterface loggedUser = logoutUser;
 
-    private REDHandler REDHandler;
+    private REDHandler redHandler;
 
 
 
@@ -120,9 +92,8 @@ public class SinapsiBackgroundService extends Service
     public void onCreate() {
         super.onCreate();
 
-        REDHandler = new REDHandler(Looper.getMainLooper());
+        redHandler = new REDHandler(Looper.getMainLooper());
 
-        // loading settings from shared preferences -----------------
         settings = new AndroidUserSettingsFacade(AppConsts.PREFS_FILE_NAME, this);
         //loadSettings(settings);
 
@@ -136,55 +107,13 @@ public class SinapsiBackgroundService extends Service
             }
         });
 
-
-        // web service initialization -------------------------------
-        web = new RetrofitWebServiceFacade(
+        daemon = new SinapsiDaemonThread(
+                settings,
+                sinapsiLog,
                 new AndroidLog("RETROFIT"),
-                this,
-                this,
-                this,
-                this,
                 new AndroidBase64EncodingMethod(),
-                new AndroidBase64DecodingMethod());
-
-        // inits the engine with mock data for debug
-        if (AppConsts.DEBUG_BYPASS_LOGIN) mockLogin();
-
-    }
-
-    public void initEngine() {
-        // initializing web execution interface ---------------------
-        WebExecutionInterface defaultWebExecutionInterface = new WebExecutionInterface() {
-            @Override
-            public void continueExecutionOnDevice(ExecutionInterface ei, DeviceInterface di) {
-                web.continueMacroOnDevice(
-                        device,
-                        di,
-                        new RemoteExecutionDescriptor(
-                                ei.getMacro().getId(),
-                                ei.getLocalVars(),
-                                ei.getExecutionStackIndexes()),
-                        new SinapsiWebServiceFacade.WebServiceCallback<CommunicationInfo>() {
-
-                            @Override
-                            public void success(CommunicationInfo s, Object response) {
-                                sinapsiLog.log("EXECUTION_CONTINUE", s.getAdditionalInfo());
-                            }
-
-                            @Override
-                            public void failure(Throwable error) {
-                                sinapsiLog.log("EXECUTION_CONTINUE", "FAIL");
-                            }
-                        });
-            }
-        };
-
-        // here starts engine initialization    ---------------------
-
-        engine = new MacroEngine(
-                device,
+                new AndroidBase64DecodingMethod(),
                 new AndroidActivationManager(this),
-                defaultWebExecutionInterface,
                 new DefaultRequirementResolver() {
                     @Override
                     public void resolveRequirements(SystemFacade sf) {
@@ -194,10 +123,10 @@ public class SinapsiBackgroundService extends Service
                 new PlatformDependantObjectProvider() {
                     @Override
                     public Object getObject(ObjectKey key) throws ObjectNotAvailableException {
-                        switch (key){
+                        switch (key) {
                             case LOGGED_USER:
                                 return loggedUser;
-                            
+
                             case ANDROID_SERVICE_CONTEXT:
                                 return SinapsiBackgroundService.this;
 
@@ -209,86 +138,98 @@ public class SinapsiBackgroundService extends Service
                         }
                     }
                 },
+                new SinapsiDaemonThread.DBManagerProvider() {
+                    @Override
+                    public LocalDBManager openLocalDBManager(String fileName, ComponentFactory componentFactory) {
+                        return new AndroidLocalDBManager(getApplicationContext(), fileName, componentFactory);
+                    }
 
-                sinapsiLog,
+                    @Override
+                    public DiffDBManager openDiffDBManager(String fileName) {
+                        return new AndroidDiffDBManager(getApplicationContext(), fileName);
+                    }
+                },
+                this,
+                this,
                 DefaultCoreModules.ANTARES_CORE_MODULE,
                 DefaultCoreModules.ANTARES_COMMON_COMPONENTS_MODULE,
-                DefaultAndroidModules.ANTARES_ANDROID_MODULE);
-
-        // here ends engine initialization      ---------------------
-
-        // sync manager initialization ------------------------------
-
-        AndroidLocalDBManager aldbm_old;
-        AndroidLocalDBManager aldbm_curr;
-        AndroidDiffDBManager addbm;
-
-        if (loggedUser.getId() == logoutUser.getId()) {
-            aldbm_old = new AndroidLocalDBManager(getApplicationContext(), "logout_user-lastSync.db", engine.getComponentFactory());
-            aldbm_curr = new AndroidLocalDBManager(getApplicationContext(), "logout_user-current.db", engine.getComponentFactory());
-            addbm = new AndroidDiffDBManager(getApplicationContext(), "logout_user-diff.db");
-            Log.d("DBLOCATION", getApplicationContext().getDatabasePath("logout_user-lastSync.db").getAbsolutePath());
-            Log.d("DBLOCATION", getApplicationContext().getDatabasePath("logout_user-lastSync.db").getAbsolutePath());
-            Log.d("DBLOCATION", getApplicationContext().getDatabasePath("logout_user-lastSync.db").getAbsolutePath());
-            Log.d("DBLOCATION", getApplicationContext().getDatabasePath("logout_user-lastSync.db").getAbsolutePath());
-            Log.d("DBLOCATION", getApplicationContext().getDatabasePath("logout_user-lastSync.db").getAbsolutePath());
-        } else {
-            aldbm_old = new AndroidLocalDBManager(getApplicationContext(), loggedUser.getEmail().replace('@', '_').replace('.', '_') + "-lastSync.db", engine.getComponentFactory());
-            aldbm_curr = new AndroidLocalDBManager(getApplicationContext(), loggedUser.getEmail().replace('@', '_').replace('.', '_') + "-current.db", engine.getComponentFactory());
-            addbm = new AndroidDiffDBManager(getApplicationContext(), loggedUser.getEmail().replace('@', '_').replace('.', '_') + "-diff.db");
-        }
-
-
-        SyncManager syncManager = new SyncManager(
-                web,
-                aldbm_old,
-                aldbm_curr,
-                addbm,
-                device
-
+                DefaultAndroidModules.ANTARES_ANDROID_MODULE
         );
 
-        safeSyncManager = new SafeSyncManager(syncManager, this);
-
-        if (AppConsts.DEBUG_CLEAR_DB_ON_START) syncManager.clearAll();
-
-        if (AppConsts.DEBUG_TEST_MACROS) createLocalMacroExamples();
-
-
+        daemon.initializeDaemon();
     }
-
-    public void syncMacrosAndStartEngine(){
-        // loads macros from local db/web service -------------------
-        syncMacros(new BackgroundSyncCallback() {
-            @Override
-            public void onBackgroundSyncSuccess(List<MacroInterface> currentMacros) {
-                engine.startEngine();
-            }
-
-            @Override
-            public void onBackgroundSyncFail(Throwable error) {
-                //try to start the engine anyway
-                engine.startEngine();
-            }
-        }, false);
-
-
-        startForegroundMode();
-    }
-
-    private void loadSettings(UserSettingsFacade settings) {
-        //TODO: impl
-    }
-
 
     @Override
-    public int onStartCommand(Intent intent, int flags, int startId) {
-        started = true;
-        return super.onStartCommand(intent, flags, startId);
+    public boolean isOnline() {
+        ConnectivityManager cm = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo netInfo = cm.getActiveNetworkInfo();
+        return netInfo != null && netInfo.isConnectedOrConnecting();
     }
 
-    public boolean isStarted() {
-        return started;
+    public DeviceInterface getDevice() {
+        return daemon.getDevice();
+    }
+
+    public ComponentFactory getComponentFactory() {
+        return daemon.getComponentFactory();
+    }
+
+    public SinapsiWebServiceFacade getWeb() {
+        return daemon.getWeb();
+    }
+
+    public void setDevice(Device device) {
+        daemon.setDevice(device);
+    }
+
+    public void initEngine() {
+        daemon.initEngine();
+    }
+
+    public WSClient getWSClient() {
+        return daemon.getWSClient();
+    }
+
+    public MacroEngine getEngine() {
+        return daemon.getEngine();
+    }
+
+    public void syncMacrosAndStartEngine() {
+        daemon.syncMacrosAndStartEngine();
+    }
+
+    public void syncMacros(SinapsiDaemonThread.BackgroundSyncCallback callback, boolean userIntention) {
+        daemon.syncMacros(callback, userIntention);
+    }
+
+    public void addMacro(MacroInterface macro, SinapsiDaemonThread.BackgroundSyncCallback callback, boolean userIntention) {
+        daemon.updateMacro(macro, callback, userIntention);
+    }
+
+    public void removeMacro(int id, SinapsiDaemonThread.BackgroundSyncCallback backgroundSyncCallback, boolean userIntention) {
+        daemon.removeMacro(id, backgroundSyncCallback, userIntention);
+    }
+
+    public void updateMacro(MacroInterface macro, SinapsiDaemonThread.BackgroundSyncCallback callback, boolean userIntention) {
+        daemon.updateMacro(macro, callback, userIntention);
+    }
+
+    public MacroInterface newEmptyMacro() {
+        return daemon.newEmptyMacro();
+    }
+
+    public SinapsiDaemonThread getDaemon() {
+        return daemon;
+    }
+
+    public UserInterface getLoggedUser() {
+        return daemon.getLoggedUser();
+    }
+
+    public class SinapsiServiceBinder extends Binder {
+        public SinapsiBackgroundService getService() {
+            return SinapsiBackgroundService.this;
+        }
     }
 
     @Override
@@ -296,63 +237,37 @@ public class SinapsiBackgroundService extends Service
         return new SinapsiServiceBinder();
     }
 
-
-    public List<MacroInterface> getMacros() {
-        return new ArrayList<>(engine.getMacros().values());
-    }
-
-    /**
-     * Adds a web service connection listener to the notification set.
-     * From now on, when the online/offline mode changes, the specified listener
-     * is notified.
-     *
-     * @param wscl the connection listener
-     */
-    public void addWebServiceConnectionListener(WebServiceConnectionListener wscl) {
-        connectionListeners.put(wscl.getClass().getName(), wscl);
-    }
-
-    /**
-     * Removes a web service connection listener to from the notification set.
-     *
-     * @param wscl the connection listener
-     */
-    public void removeWebServiceConnectionListener(WebServiceConnectionListener wscl) {
-        connectionListeners.remove(wscl.getClass().getName());
-    }
-
-    private void notifyWebServiceConnectionListeners(boolean online) {
-        for (WebServiceConnectionListener wscl : connectionListeners.values()) {
-            if (online) wscl.onOnlineMode();
-            else wscl.onOfflineMode();
-        }
-    }
-
-
-    /**
-     * Online status getter.
-     */
     @Override
-    public boolean isOnline() {
-        ConnectivityManager cm =
-                (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
-        NetworkInfo netInfo = cm.getActiveNetworkInfo();
-        boolean tmpOnlineVal = netInfo != null && netInfo.isConnectedOrConnecting();
-        if (onlineMode != tmpOnlineVal) notifyWebServiceConnectionListeners(tmpOnlineVal);
-        onlineMode = tmpOnlineVal;
-        return tmpOnlineVal;
+    public void onEngineStarted() {
+        startForegroundMode();
     }
 
     @Override
-    public void onWebSocketOpen() {
-        Lol.d("WEB_SOCKET", "WebSocket Open");
+    public void onEnginePaused() {
+        stopForegroundMode();
     }
 
     @Override
-    public void onWebSocketMessage(String message) {
-        Lol.d("WEB_SOCKET", "WebSocket message received: '" + message + "'");
-        handleWsMessage(message, true);
+    public void onUserLogin(UserInterface user) {
+        SinapsiAndroidApplication app = (SinapsiAndroidApplication) getApplication();
+        app.setLoggedIn(true);
+    }
 
+    @Override
+    public void onUserLogout() {
+        this.loggedUser = logoutUser;
+        SinapsiAndroidApplication app = (SinapsiAndroidApplication) getApplication();
+        app.setLoggedIn(false);
+    }
+
+    @Override
+    public void onSyncConflicts(List<MacroSyncConflict> conflicts, SyncManager.ConflictResolutionCallback callback) {
+        handleConflicts(conflicts, callback);
+    }
+
+    @Override
+    public void onSyncFailure(Throwable e, boolean showError) {
+        handleSyncFailure(e, showError);
     }
 
     @Override
@@ -365,80 +280,54 @@ public class SinapsiBackgroundService extends Service
         Lol.d("WEB_SOCKET", "WebSocket Close: " + code + ":" + reason);
     }
 
-    private void handleWsMessage(final String message, boolean firstcall) {
-
-        Gson gson = new Gson();
-        WebSocketMessage wsMsg = gson.fromJson(message, WebSocketMessage.class);
-        switch (wsMsg.getMsgType()) {
-            case SinapsiMessageTypes.REMOTE_EXECUTION_DESCRIPTOR: {
-                final RemoteExecutionDescriptor red = gson.fromJson(wsMsg.getData(), RemoteExecutionDescriptor.class);
-                handleWsRed(red);
-            }
-            break;
-            case SinapsiMessageTypes.MODEL_UPDATED_NOTIFICATION: {
-                syncMacros(new BackgroundSyncCallback() {
-                    @Override
-                    public void onBackgroundSyncSuccess(List<MacroInterface> currentMacros) {
-                        //do nothing
-                    }
-
-                    @Override
-                    public void onBackgroundSyncFail(Throwable error) {
-                        //do nothing
-                    }
-                }, false);
-            }
-            break;
-            case SinapsiMessageTypes.NEW_CONNECTION: {
-
-            }
-            break;
-            case SinapsiMessageTypes.CONNECTION_LOST: {
-
-            }
-            break;
-        }
-    }
-
-    public UserInterface getLoggedUser() {
-        return loggedUser;
+    @Override
+    public void onWebSocketOpen() {
+        Lol.d("WEB_SOCKET", "WebSocket Open");
     }
 
     @Override
-    public void onUserLogIn(UserInterface user) {
-        this.loggedUser = user;
-        SinapsiAndroidApplication app = (SinapsiAndroidApplication) getApplication();
-        app.setLoggedIn(true);
+    public void onWebSocketMessage(String message) {
+        Lol.d("WEB_SOCKET", "WebSocket message received: '" + message + "'");
     }
 
     @Override
-    public void onUserLogOut() {
-        this.loggedUser = logoutUser;
-        SinapsiAndroidApplication app = (SinapsiAndroidApplication) getApplication();
-        app.setLoggedIn(false);
-        pauseEngine();
-        if(getWSClient().isOpen()) getWSClient().closeConnection();
-        stopForegroundMode();
+    public void onWebSocketUpdatedNotificationReceived() {
+
     }
 
-    /**
-     * Loads all saved macros from a local db.
-     */
-    public void syncMacros(final BackgroundSyncCallback callback, final boolean userIntention) {
-
-        safeSyncManager.getMacros(new BackgroundServiceInternalSyncCallback(callback, userIntention));
+    @Override
+    public void onWebSocketNewConnectionNotificationReceived() {
+        //TODO: update devices table (maybe in daemon)
     }
 
-    public void removeMacro(int id, final BackgroundSyncCallback callback, final boolean userIntention) {
-        safeSyncManager.removeMacro(id, new BackgroundServiceInternalSyncCallback(callback, userIntention));
+    @Override
+    public void onWebSocketConnectionLostNotificationReceived() {
+        //TODO: update devices table (maybe in daemon)
     }
 
-    public void updateMacro(MacroInterface macro, final BackgroundSyncCallback callback, final boolean userIntention) {
-        safeSyncManager.updateMacro(macro, new BackgroundServiceInternalSyncCallback(callback, userIntention));
+    @Override
+    public boolean onWebSocketRemoteExecutionDescriptorReceived(RemoteExecutionDescriptor red) {
+        handleWsRed(red);
+        return true;
     }
 
-    public void addMacro(MacroInterface macro, final BackgroundSyncCallback callback, final boolean userIntention) {
-        safeSyncManager.addMacro(macro, new BackgroundServiceInternalSyncCallback(callback, userIntention));
+    private void startForegroundMode() {
+        //HINT: useful toggles instead of classic content pending intent
+
+        Intent i1 = new Intent(this, MainActivity.class);
+        PendingIntent maini = PendingIntent.getActivity(this, 0, i1, 0);
+
+        NotificationCompat.Builder builder = new NotificationCompat.Builder(getApplicationContext());
+        builder.setContentTitle(getString(R.string.app_name))
+                .setContentText("Sinapsi Engine service is running")
+                .setSmallIcon(R.drawable.ic_stat_1436506281_cog)
+                .setContentIntent(maini);
+        Notification forenotif = builder.build();
+        startForeground(1, forenotif);
+    }
+
+    private void stopForegroundMode() {
+        stopForeground(true);
     }
 
     public void handleConflicts(List<MacroSyncConflict> conflicts, SyncManager.ConflictResolutionCallback callback) {
@@ -475,319 +364,10 @@ public class SinapsiBackgroundService extends Service
         }
     }
 
-
-    public void mockLogin() {
-        onUserLogIn(logoutUser);
-        setDevice(new FactoryModel().newDevice(-1, "Test device", "Sinapsi debug", "AndroidSmartphone", loggedUser, AndroidAppConsts.CLIENT_VERSION));
-        initEngine();
-    }
-
-
-    /**
-     * Binder class received by activities in order to access
-     * this service's methods.
-     */
-    public class SinapsiServiceBinder extends Binder {
-        public SinapsiBackgroundService getService() {
-            return SinapsiBackgroundService.this;
-        }
-    }
-
-    /**
-     * engine getter
-     *
-     * @return the engine
-     */
-    public MacroEngine getEngine() {
-        return engine;
-    }
-
-    /**
-     * sinapsi log getter
-     *
-     * @return the sinapsi log
-     */
-    public SinapsiLog getSinapsiLog() {
-        return sinapsiLog;
-    }
-
-    /**
-     * component factory getter
-     *
-     * @return the component factory
-     */
-    @Override
-    public ComponentFactory getComponentFactory() {
-        return engine.getComponentFactory();
-    }
-
-    /**
-     * model factory getter
-     *
-     * @return the model factory
-     */
-    public FactoryModel getFactoryModel() {
-        return fm;
-    }
-
-    /**
-     * web service facade getter
-     *
-     * @return the web service facade
-     */
-    public RetrofitWebServiceFacade getWeb() {
-        return web;
-    }
-
-    /**
-     * User settings facade getter
-     *
-     * @return the user settings facade
-     */
-    public UserSettingsFacade getSettings() {
-        return settings;
-    }
-
-    /**
-     * getter of the device on which this client is running onto.
-     *
-     * @return the device
-     */
-    public DeviceInterface getDevice() {
-        return device;
-    }
-
-    /**
-     * setter of the device on which this client is running onto.
-     *
-     * @param device the device
-     */
-    public void setDevice(DeviceInterface device) {
-        this.device = device;
-    }
-
-    /**
-     * Return the WSClient object
-     *
-     * @return WSClient
-     */
-    public WSClient getWSClient() {
-        return web.getWebSocketClient();
-    }
-
-    /**
-     * QUESTO E' UN PRIMO ESEMPIO DI UNA MACRO LOCALE.
-     * Viene creata una macro che si attiva ogni volta che il wifi
-     * si connette ad una rete, e che quindi stampa un messaggio
-     * nel log e successivamente mostra una notifica.
-     * <p/>
-     * Il lavoro che fa questo metodo e' in sostanza quello
-     * che dovra' essere fatto dal macro editor. Le uniche differenze
-     * sono che il macro editor comunichera' con una GUI, e che controllera'
-     * anche quali component sono disponibili prima di aggiungerli o mostrarli
-     * all'utente.
-     */
-    public void createLocalMacroExamples() {
-        MacroInterface myMacro = fm.newMacro("Wifi connection", 1);
-        myMacro.setTrigger(getComponentFactory().newTrigger(
-                TriggerWifi.TRIGGER_WIFI,
-                new ActualParamBuilder()
-                        .put("wifi_connection_status", ConnectionStatusChoices.CONNECTED.toString())
-                        .create().toString(),
-                myMacro,
-                device.getId()));
-
-        myMacro.addAction(getComponentFactory().newAction(
-                ActionLog.ACTION_LOG,
-                new ActualParamBuilder()
-                        .put("log_message", "Wifi enabled")
-                        .create().toString(),
-                device.getId()
-        ));
-
-        myMacro.addAction(getComponentFactory().newAction(
-                ActionSimpleNotification.ACTION_SIMPLE_NOTIFICATION,
-                new ActualParamBuilder()
-                        .put("notification_title", "Yeah!")
-                        .put("notification_message", "Connected to @{wifi_ssid}.")
-                        .create().toString(),
-                device.getId()
-        ));
-        myMacro.setMacroColor("#3333AA");
-        myMacro.setIconName("ic_macro_default");
-        engine.addMacro(myMacro);
-
-
-        //MACRO 2
-        MacroInterface myMacro2 = fm.newMacro("Screen Log", 2);
-        myMacro2.setTrigger(getComponentFactory().newTrigger(
-                TriggerScreenPower.TRIGGER_SCREEN_POWER,
-                null,
-                myMacro2,
-                device.getId()
-        ));
-
-        myMacro2.addAction(getComponentFactory().newAction(
-                ActionLog.ACTION_LOG,
-                new ActualParamBuilder()
-                        .put("log_message", "Lo schermo e' @{screen_power}")
-                        .create().toString(),
-                device.getId()
-        ));
-
-        myMacro2.addAction(getComponentFactory().newAction(
-                ActionSetVariable.ACTION_SET_VARIABLE,
-                new ActualParamBuilder()
-                        .put("var_name", "screen_power")
-                        .put("var_scope", VariableManager.Scopes.LOCAL.toString())
-                        .put("var_type", VariableManager.Types.STRING.toString())
-                        .put("var_value", "@{screen_power} @{screen_power}")
-                        .create().toString(),
-                device.getId()
-        ));
-
-        myMacro2.addAction(getComponentFactory().newAction(
-                ActionLog.ACTION_LOG,
-                new ActualParamBuilder()
-                        .put("log_message", "Lo schermo e' @{screen_power}")
-                        .create().toString(),
-                device.getId()
-        ));
-
-        myMacro2.setMacroColor("#33AA33");
-        myMacro2.setIconName("ic_macro_default");
-        engine.addMacro(myMacro2);
-
-        //MACRO3
-        MacroInterface myMacro3 = fm.newMacro("Ex. POWER->CONFIRM->WIFIOFF->LOG", 3);
-        /*myMacro3.setTrigger(getComponentFactory().newTrigger(
-                TriggerACPower.TRIGGER_AC_POWER,
-                new ActualParamBuilder()
-                        .put("ac_power", false)
-                        .create().toString(),
-                myMacro3
-        ));*/
-
-        /*myMacro3.setTrigger(getComponentFactory().newTrigger(
-                TriggerEngineStart.TRIGGER_ENGINE_START,
-                null,
-                myMacro3
-        ));*/
-
-        myMacro3.setTrigger(getComponentFactory().newTrigger(
-                TriggerWifi.TRIGGER_WIFI,
-                new ActualParamBuilder()
-                        .put("wifi_connection_status", ConnectionStatusChoices.CONNECTED.toString())
-                        .create().toString(),
-                myMacro3,
-                device.getId()));
-
-        myMacro3.addAction(getComponentFactory().newAction(
-                ActionContinueConfirmDialog.ACTION_CONTINUE_CONFIRM_DIALOG,
-                new ActualParamBuilder()
-                        .put("dialog_title", "Continuare?")
-                        .put("dialog_message", "Sicuro di voler disattivare il wifi?")
-                        .create().toString(),
-                device.getId()
-        ));
-
-        myMacro3.addAction(getComponentFactory().newAction(
-                ActionWifiState.ACTION_WIFI_STATE,
-                new ActualParamBuilder()
-                        .put("wifi_switch", false)
-                        .create().toString(),
-                device.getId()
-        ));
-
-        myMacro3.addAction(getComponentFactory().newAction(
-                ActionLog.ACTION_LOG,
-                new ActualParamBuilder()
-                        .put("log_message", "Il wifi e' disattivato")
-                        .create().toString(),
-                device.getId()
-        ));
-
-        myMacro3.setMacroColor("#AA3333");
-        myMacro3.setIconName("ic_macro_default");
-        //engine.addMacro(myMacro3);
-    }
-
-    public void pauseEngine() {
-        engine.pauseEngine();
-        stopForegroundMode();
-    }
-
-    public void resumeEngine() {
-        engine.resumeEngine();
-        startForegroundMode();
-    }
-
-    public MacroInterface newEmptyMacro() {
-        int id = safeSyncManager.getMinId() - 1;
-        return engine.newEmptyMacro(id);
-    }
-
     private void handleWsRed(RemoteExecutionDescriptor red){
-        Message msg = REDHandler.obtainMessage();
-        msg.obj = new Triplet<RemoteExecutionDescriptor, MacroEngine, Boolean>(red, engine, true);
+        Message msg = redHandler.obtainMessage();
+        msg.obj = new Triplet<>(red, daemon.getEngine(), true);
         msg.sendToTarget();
-    }
-
-
-    private void startForegroundMode() {
-        //HINT: useful toggles instead of classic content pending intent
-
-        Intent i1 = new Intent(this, MainActivity.class);
-        PendingIntent maini = PendingIntent.getActivity(this, 0, i1, 0);
-
-        NotificationCompat.Builder builder = new NotificationCompat.Builder(getApplicationContext());
-        builder.setContentTitle(getString(R.string.app_name))
-                .setContentText("Sinapsi Engine service is running")
-                .setSmallIcon(R.drawable.ic_stat_1436506281_cog)
-                .setContentIntent(maini);
-        Notification forenotif = builder.build();
-        startForeground(1, forenotif);
-    }
-
-    private void stopForegroundMode() {
-        stopForeground(true);
-    }
-
-
-    public static interface BackgroundSyncCallback {
-        public void onBackgroundSyncSuccess(List<MacroInterface> currentMacros);
-
-        public void onBackgroundSyncFail(Throwable error);
-    }
-
-    private class BackgroundServiceInternalSyncCallback implements SyncManager.MacroSyncCallback {
-
-        private final BackgroundSyncCallback callback;
-        private final boolean userIntention;
-
-        public BackgroundServiceInternalSyncCallback(BackgroundSyncCallback callback, boolean userIntention) {
-            this.callback = callback;
-            this.userIntention = userIntention;
-        }
-
-        @Override
-        public void onSyncSuccess(List<MacroInterface> currentMacros) {
-            Lol.d(this, "Sync succeedeed: refreshing macros");
-            engine.clearMacros();
-            engine.addMacros(currentMacros);
-            callback.onBackgroundSyncSuccess(currentMacros);
-        }
-
-        @Override
-        public void onSyncConflicts(List<MacroSyncConflict> conflicts, SyncManager.ConflictResolutionCallback conflictCallback) {
-            handleConflicts(conflicts, conflictCallback);
-        }
-
-        @Override
-        public void onSyncFailure(Throwable error) {
-            handleSyncFailure(error, userIntention);
-            callback.onBackgroundSyncFail(error);
-        }
     }
 
     private final class REDHandler extends Handler{
@@ -798,7 +378,7 @@ public class SinapsiBackgroundService extends Service
 
         private void handleRecursive(RemoteExecutionDescriptor red, MacroEngine engine, boolean firstcall){
             Message msg = obtainMessage();
-            msg.obj = new Triplet<RemoteExecutionDescriptor, MacroEngine, Boolean>(red, engine, firstcall);
+            msg.obj = new Triplet<>(red, engine, firstcall);
             handleMessage(msg);
         }
 
@@ -809,12 +389,12 @@ public class SinapsiBackgroundService extends Service
             final Triplet<RemoteExecutionDescriptor, MacroEngine, Boolean> triplet = (Triplet<RemoteExecutionDescriptor, MacroEngine, Boolean>) msg.obj;
 
             try {
-                engine.continueMacro(triplet.getFirst());
+                daemon.getEngine().continueMacro(triplet.getFirst());
             } catch (MacroEngine.MissingMacroException e) {
                 if (triplet.getThird()) {
                     //retries after a sync
 
-                    syncMacros(new BackgroundSyncCallback() {
+                    daemon.syncMacros(new SinapsiDaemonThread.BackgroundSyncCallback() {
                         @Override
                         public void onBackgroundSyncSuccess(List<MacroInterface> currentMacros) {
                             handleRecursive(triplet.getFirst(), triplet.getSecond(), false);
@@ -840,4 +420,6 @@ public class SinapsiBackgroundService extends Service
 
 
     }
+
+
 }

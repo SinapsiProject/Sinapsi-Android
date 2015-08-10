@@ -19,9 +19,9 @@ import com.sinapsi.model.module.ModuleMember;
 @AdapterImplementation(
         value = DeviceInfoAdapter.ADAPTER_DEVICE_INFO,
         platform = SinapsiPlatforms.PLATFORM_ANDROID)
-@InitializationNeededObjects(
+@InitializationNeededObjects({
         PlatformDependantObjectProvider.ObjectKey.ANDROID_APPLICATION_CONTEXT
-)
+})
 public class AndroidDeviceInfo implements DeviceInfoAdapter {
 
     private Context context;

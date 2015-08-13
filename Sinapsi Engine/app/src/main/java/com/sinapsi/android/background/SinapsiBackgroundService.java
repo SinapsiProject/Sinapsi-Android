@@ -3,8 +3,10 @@ package com.sinapsi.android.background;
 import android.app.Notification;
 import android.app.PendingIntent;
 import android.app.Service;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.Binder;
@@ -184,6 +186,21 @@ public class SinapsiBackgroundService extends Service
 
     public void initEngine() {
         daemon.initEngine();
+        BroadcastReceiver connectionReceiver = new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                boolean open = daemon.getWSClient().isOpen();
+                boolean online = isOnline();
+                if(open&&!online){
+                    //closes connection
+                    daemon.getWSClient().closeConnection();
+                }else if(!open&&online){
+                    //opens connection
+                    daemon.getWSClient().establishConnection();
+                }
+            }
+        };
+        registerReceiver(connectionReceiver, new IntentFilter("android.net.conn.CONNECTIVITY_CHANGE"));
     }
 
     public WSClient getWSClient() {

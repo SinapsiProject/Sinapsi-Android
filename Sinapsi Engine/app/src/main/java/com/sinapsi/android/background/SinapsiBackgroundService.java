@@ -288,6 +288,11 @@ public class SinapsiBackgroundService extends Service
     }
 
     @Override
+    public void onDeviceTableUpdateFailure(Throwable e, boolean showError) {
+        handleDeviceTableUpdateError(e, showError);
+    }
+
+    @Override
     public void onWebSocketError(Exception ex) {
         Lol.d("WEB_SOCKET", "WebSocket Error: " + ex.getMessage());
     }
@@ -314,12 +319,12 @@ public class SinapsiBackgroundService extends Service
 
     @Override
     public void onWebSocketNewConnectionNotificationReceived() {
-        //TODO: update devices table (maybe in daemon)
+
     }
 
     @Override
     public void onWebSocketConnectionLostNotificationReceived() {
-        //TODO: update devices table (maybe in daemon)
+
     }
 
     @Override
@@ -377,6 +382,19 @@ public class SinapsiBackgroundService extends Service
                         true);
             } else {
                 DialogUtils.showOkDialog(SinapsiBackgroundService.this, "Sync failed", e.getMessage(), true);
+            }
+        }
+    }
+
+    public void handleDeviceTableUpdateError(Throwable e, boolean showError){
+        Lol.d(SinapsiBackgroundService.class, "Device Table update failed: " + e.getMessage());
+        e.printStackTrace();
+
+        if (showError) {
+            if (e instanceof RetrofitError) {
+                DialogUtils.handleRetrofitError(e, SinapsiBackgroundService.this, true);
+            } else {
+                DialogUtils.showOkDialog(SinapsiBackgroundService.this, "DeviceTable update failed", e.getMessage(), true);
             }
         }
     }
